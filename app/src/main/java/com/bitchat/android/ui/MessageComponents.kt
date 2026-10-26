@@ -94,6 +94,7 @@ import com.bitchat.android.ui.theme.BASE_FONT_SIZE
 import com.bitchat.android.ui.theme.BitchatMotion
 import com.bitchat.android.ui.theme.ChatUiModeManager
 import com.bitchat.android.ui.theme.ChatVisualTokens
+import com.bitchat.android.ui.theme.colorForPeer
 import com.bitchat.android.ui.theme.LocalBitchatPalette
 import com.bitchat.android.ui.theme.MessageBodyTextStyle
 import com.bitchat.android.ui.theme.MessageSenderTextStyle
