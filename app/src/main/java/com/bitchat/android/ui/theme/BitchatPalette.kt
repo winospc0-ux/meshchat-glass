@@ -82,19 +82,19 @@ val DarkBitchatPalette = BitchatPalette(
 )
 
 val LightBitchatPalette = BitchatPalette(
-    inputOutline = Color(0xFFCFD3D1),
-    inputOutlineFocused = Color(0xFF8E9490),
-    inputSurface = Color(0xFFFAFAFA),
-    inputSurfaceFocused = Color(0xFFF2F2F2),
-    inputButton = Color(0xFFE8E8E8),
-    textTertiary = Color(0xFF757F75),
-    accentOrange = Color(0xFFFF9500),
-    accentPurple = Color(0xFFAF52DE),
+    inputOutline = Color(0xFFE0E0E0),
+    inputOutlineFocused = Color(0xFF3390EC),
+    inputSurface = Color(0xFFF4F4F4),
+    inputSurfaceFocused = Color(0xFFEFEFEF),
+    inputButton = Color(0xFF3390EC),
+    textTertiary = Color(0xFFA1AAB0),
+    accentOrange = Color(0xFF3390EC),
+    accentPurple = Color(0xFF8774E1),
     glassSurface = Color(0xFFFFFFFF),
     glassHairlineTop = Color.White.copy(alpha = 0.90f),
     glassHairlineBottom = Color.Black.copy(alpha = 0.10f),
-    backdropNode = Color(0xFF248A3D),
-    backdropLink = Color(0xFF248A3D),
+    backdropNode = Color(0xFF3390EC),
+    backdropLink = Color(0xFF3390EC),
     peerColors = PeerColorStyle.Light,
 )
 

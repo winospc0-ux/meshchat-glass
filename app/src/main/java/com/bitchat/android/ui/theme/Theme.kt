@@ -44,27 +44,26 @@ internal val DarkBitchatColorScheme = darkColorScheme(
 )
 
 internal val LightBitchatColorScheme = lightColorScheme(
-    primary = Color(0xFF248A3D),
+    primary = Color(0xFF3390EC),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFD5F1D8),
-    onPrimaryContainer = Color(0xFF0A3212),
-    secondary = Color(0xFF007AFF),
+    primaryContainer = Color(0xFFDCEBFB),
+    onPrimaryContainer = Color(0xFF0A3D66),
+    secondary = Color(0xFF3390EC),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD6E9FF),
-    onSecondaryContainer = Color(0xFF002C5C),
-    tertiary = LightBitchatPalette.accentOrange,
-    onTertiary = Color.Black,
-    // Warm paper, not stock white: glass reads warmer over it and the app stops
-    // looking like a default Material surface.
-    background = Color(0xFFF6F4EF),
-    onBackground = Color(0xFF131A13),
-    surface = Color(0xFFF2F6F2),
-    onSurface = Color(0xFF131A13),
-    surfaceVariant = Color(0xFFE7EDE7),
-    onSurfaceVariant = Color(0xFF4C574C),
-    outline = Color(0xFFCBD6CB),
-    outlineVariant = Color(0xFFDEE6DE),
-    error = Color(0xFFD70015),
+    secondaryContainer = Color(0xFFDCEBFB),
+    onSecondaryContainer = Color(0xFF0A3D66),
+    tertiary = Color(0xFF4FAE4E),
+    onTertiary = Color.White,
+    // Telegram-style clean white base.
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF0F0F0F),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF0F0F0F),
+    surfaceVariant = Color(0xFFF4F4F4),
+    onSurfaceVariant = Color(0xFF707579),
+    outline = Color(0xFFE0E0E0),
+    outlineVariant = Color(0xFFEEEEEE),
+    error = Color(0xFFE53935),
     onError = Color.White
 )
 
