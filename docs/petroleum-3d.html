@@ -1941,7 +1941,7 @@ function buildChemKit(root, M){
 
 /* ================= SCENE ================= */
 var stageEl=document.getElementById("stage");
-var scene, camera, renderer, modelGroup=null, currentId="rig";
+var scene, camera, renderer, modelGroup=null, currentId="separator";
 var autoRotate=true, wire=false, dragging=false, lastX=0, lastY=0, velY=0.004;
 var targetRX=0.35, targetRY=-0.6, camZ=11.5, userZoom=false;
 function defaultZ(){ var w=stageEl.clientWidth||800; return w<560?16.5:(w<900?13.5:11.5); }
@@ -2003,7 +2003,7 @@ function initThree(){
   var disc=new THREE.Mesh(new THREE.CylinderGeometry(3.6,3.9,0.16,48), MAT.ground); disc.position.y=-3.05; disc.receiveShadow=true; scene.add(disc);
   var ring=new THREE.Mesh(new THREE.TorusGeometry(3.6,0.035,10,64), MAT.amber); ring.rotation.x=Math.PI/2; ring.position.y=-2.96; scene.add(ring);
   var grid=new THREE.PolarGridHelper(3.6,8,4,48,0x5a6d78,0x3c4a53); grid.position.y=-2.95; scene.add(grid);
-  loadModel("rig");
+  loadModel("separator");
   animate();
   return true;
 }
@@ -2013,6 +2013,7 @@ function loadModel(id){
   if(modelGroup){ scene.remove(modelGroup); }
   modelGroup=new THREE.Group(); current=modelGroup;
   if(realMode && REAL_MODELS[id]){ loadRealModel(id); return; }
+  if(typeof BUILDERS[id]!=="function" || !REAL_MODELS[id] && typeof BUILDERS[id]!=="function"){ var fb="separator"; if(id!==fb){ return loadModel(fb); } return; }
   BUILDERS[id](modelGroup);
   modelGroup.traverse(function(o){ if(o.isMesh && !(o.material&&o.material.transparent)){ o.castShadow=true; } });
   var s=SCALES[id]||1; modelGroup.scale.set(s,s,s);
@@ -2052,7 +2053,7 @@ function loadRealModel(id){
   new THREE.GLTFLoader().load(url, function(gltf){ finish(gltf.scene); }, undefined, function(err){
     console.warn("real model failed", err);
     realMode=false; updateRealBtn();
-    BUILDERS[id](modelGroup);
+    if(typeof BUILDERS[id]==="function") BUILDERS[id](modelGroup); else loadModel("separator");
   });
 }
 function toggleReal(){ if(!REAL_MODELS[currentId]) return; realMode=!realMode; updateRealBtn(); loadModel(currentId); }
