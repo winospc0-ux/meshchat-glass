@@ -548,11 +548,11 @@ function mesh(geo, material, x,y,z, parent){
   var m = new THREE.Mesh(geo, material); m.position.set(x||0,y||0,z||0);
   (parent||current).add(m); return m;
 }
-function cyl(rt,rb,h,material,x,y,z,parent,seg){ return mesh(new THREE.CylinderGeometry(rt,rb,h,seg||48), material, x,y,z, parent); }
+function cyl(rt,rb,h,material,x,y,z,parent,seg){ return mesh(new THREE.CylinderGeometry(rt,rb,h,seg||96), material, x,y,z, parent); }
 function box(w,h,d,material,x,y,z,parent){ return mesh(new THREE.BoxGeometry(w,h,d), material, x,y,z, parent); }
-function sph(r,material,x,y,z,parent){ return mesh(new THREE.SphereGeometry(r,40,28), material, x,y,z, parent); }
+function sph(r,material,x,y,z,parent){ return mesh(new THREE.SphereGeometry(r,72,52), material, x,y,z, parent); }
 function cone(r,h,material,x,y,z,parent){ return mesh(new THREE.ConeGeometry(r,h,40), material, x,y,z, parent); }
-function tor(r,t,material,x,y,z,parent){ return mesh(new THREE.TorusGeometry(r,t,18,56), material, x,y,z, parent); }
+function tor(r,t,material,x,y,z,parent){ return mesh(new THREE.TorusGeometry(r,t,32,96), material, x,y,z, parent); }
 /* تفاصيل دقيقة مشتركة: شريط خطر، لوحة تعريف، صواميل */
 function hazard(x,y,z,w,parent){
   var hg=new THREE.Group(); hg.position.set(x,y,z); (parent||current).add(hg);
@@ -619,176 +619,195 @@ function capsule(r,h,material,x,y,z,parent){
   var b=sph(r,material,x,y-h/2,z,parent); b.scale.y=0.7;
 }
 function buildRig(g){
-  /* منصّة برية: قاعدة فرعية، برج شبكي مدبّب، كتلة تاج، طاولة عمل، خزانات طين */
+  /* منصّة برية: قاعدة فرعية، برج شبكي كامل الأضلاع والعواصب، كتلة تاج ببكرات، طاولة عمل، خزانات طين، سلم */
   box(7.8,0.28,5.4,MAT.darkSteel,0,-1.02,0,g);
   box(7.0,0.5,4.6,MAT.black,0,-0.62,0,g);
   box(6.6,0.16,4.2,MAT.amber,0,-0.3,0,g);
-  var bw=1.85, tw=0.55, H=6.1, y0=-0.25, corners=[[1,1],[1,-1],[-1,1],[-1,-1]];
-  corners.forEach(function(c){ beam([c[0]*bw,y0,c[1]*bw],[c[0]*tw,y0+H,c[1]*tw],0.1,MAT.amber,g); });
-  for(var lvl=0;lvl<4;lvl++){
-    var ya=y0+H*lvl/4, yb=y0+H*(lvl+1)/4, wa=bw+(tw-bw)*lvl/4, wb=bw+(tw-bw)*(lvl+1)/4;
-    beam([wa,ya,wa],[wa,ya,-wa],0.055,MAT.steel,g); beam([-wa,ya,wa],[-wa,ya,-wa],0.055,MAT.steel,g);
-    beam([wa,ya,wa],[-wa,ya,wa],0.055,MAT.steel,g); beam([wa,ya,-wa],[-wa,ya,-wa],0.055,MAT.steel,g);
-    beam([wa,ya,wa],[wb,yb,wb],0.045,MAT.steel,g); beam([-wa,ya,-wa],[-wb,yb,-wb],0.045,MAT.steel,g);
-    beam([wa,ya,-wa],[wb,yb,-wb],0.045,MAT.steel,g); beam([-wa,ya,wa],[-wb,yb,wb],0.045,MAT.steel,g);
-    beam([wa,ya,wa],[-wb,yb,wa],0.04,MAT.darkSteel,g); beam([-wa,ya,wa],[wb,yb,wa],0.04,MAT.darkSteel,g);
-    beam([wa,ya,-wa],[-wb,yb,-wa],0.04,MAT.darkSteel,g); beam([-wa,ya,-wa],[wb,yb,-wa],0.04,MAT.darkSteel,g);
+  var bw=1.85, tw=0.55, H=7.2, base=-0.22;
+  /* أربعة أضلاع رئيسية متقاربة */
+  for(var lx=0;lx<4;lx++){
+    var sx=(lx%2?1:-1), sz=(lx<2?1:-1);
+    beam([sx*bw,base,sz*bw*0.8],[sx*tw,base+H,sz*tw*0.8],0.09,MAT.amber,g);
   }
-  box(1.9,0.55,1.9,MAT.darkSteel,0,y0+H+0.28,0,g);
-  for(var sh=0;sh<4;sh++){ var shv=cyl(0.3,0.3,0.22,MAT.black,-0.6+sh*0.4,y0+H+0.28,0,g); shv.rotation.x=Math.PI/2; }
-  beam([0,y0+H,0],[0,y0+H-1.5,0],0.05,MAT.black,g);
-  box(0.75,1.05,0.55,MAT.darkSteel,0,y0+H-2.0,0,g);
-  cone(0.16,0.5,MAT.steel,0,y0+H-2.75,0,g).rotation.x=Math.PI;
-  box(0.95,1.15,0.95,MAT.orange,0,y0+H-3.6,0,g);
-  cyl(0.17,0.17,2.6,MAT.steel,0,1.1,0,g);
-  cyl(0.42,0.42,0.45,MAT.red,0,-0.05,0,g);
-  cyl(0.55,0.65,0.8,MAT.red,0,-0.75,0,g);
-  box(2.3,1.25,1.5,MAT.blue,-2.9,0.3,1.3,g);
-  var drum=cyl(0.42,0.42,1.5,MAT.darkSteel,-2.9,0.55,1.3,g); drum.rotation.x=Math.PI/2;
-  box(1.6,1.1,1.3,MAT.darkSteel,-2.9,0.22,-1.5,g);
-  box(2.0,1.5,1.7,MAT.white,2.95,0.45,-1.2,g);
-  box(2.1,0.14,1.8,MAT.amber,2.95,1.27,-1.2,g);
-  box(2.4,1.15,1.5,MAT.teal,2.6,0.3,1.55,g);
-  box(2.4,1.15,1.5,MAT.teal,-0.2,0.3,2.15,g);
-  cyl(0.16,0.16,0.5,MAT.darkSteel,2.0,1.1,1.55,g);
-  cyl(0.16,0.16,0.5,MAT.darkSteel,-0.8,1.1,2.15,g);
-  for(var pp=0;pp<4;pp++){ var pipe=cyl(0.11,0.11,3.4,MAT.steel,3.35,-0.1,-0.4+pp*0.3,g); pipe.rotation.z=0.1; }
-  for(var st2=0;st2<5;st2++) box(1.15,0.13,0.42,MAT.darkSteel,-3.45,-0.8+st2*0.16,2.45-st2*0.3,g);
-  beam([-3.95,1.9,2.2],[-3.95,-0.8,2.75],0.04,MAT.amber,g);
-  beam([-2.75,1.9,1.35],[-2.75,-0.8,2.05],0.04,MAT.amber,g);
-  beam([-1.95,y0+0.4,-2.0],[-1.95,y0+H-0.4,-2.0],0.05,MAT.darkSteel,g);
-  beam([1.95,y0+0.4,-2.0],[1.95,y0+H-0.4,-2.0],0.05,MAT.darkSteel,g);
-  for(var rg=0;rg<9;rg++) beam([-1.95,y0+0.7+rg*0.62,-2.0],[1.95,y0+0.7+rg*0.62,-2.0],0.035,MAT.darkSteel,g);
-  /* دقة إضافية: منصّة الحفّار، سلّم بقفص أمان، خرطوم طين، خط حفر، ومانع انفجار تحت الأرضية */
-  box(1.15,0.09,0.7,MAT.darkSteel,0,y0+H-1.15,0.95,g);
-  for(var mb3=0;mb3<4;mb3++) beam([0.55,y0+H-1.6-mb3*0.28,1.55],[0.55,y0+H-2.35-mb3*0.28,1.55],0.035,MAT.darkSteel,g);
-  beam([0.92,y0+0.2,2.32],[0.92,y0+H-0.3,2.32],0.04,MAT.amber,g);
-  beam([1.28,y0+0.2,2.32],[1.28,y0+H-0.3,2.32],0.04,MAT.amber,g);
-  for(var rung=0;rung<11;rung++) beam([0.92,y0+0.55+rung*0.48,2.32],[1.28,y0+0.55+rung*0.48,2.32],0.028,MAT.amber,g);
-  for(var hoop=0;hoop<4;hoop++){ var hp=tor(0.42,0.03,MAT.amber,1.1,y0+1.1+hoop*1.25,2.32,g); hp.rotation.y=Math.PI/2; hp.scale.z=0.55; }
-  pipeRun([[2.6,1.05,1.55],[2.6,2.6,1.2],[1.1,3.4,0.7],[0.35,2.6,0.3]],0.11,MAT.rubber,g);
-  beam([0,y0+H+0.55,0],[0,y0+H-1.45,0],0.028,MAT.black,g);
-  cyl(0.5,0.6,0.55,MAT.red,0,-1.05,0,g);
-  box(1.15,0.55,1.15,MAT.red,0,-1.48,0,g);
-  hazard(0,-0.18,2.12,2.6,g);
-  plate(2.95,0.55,0.38,0.9,0.5,g);
-  box(0.5,0.75,0.35,MAT.red,-2.9,1.35,1.3,g);
-  cyl(0.09,0.09,0.5,MAT.brass,-2.9,1.95,1.3,g);
+  /* أفقيات 6 مستويات */
+  for(var lv=1;lv<=6;lv++){
+    var y=base+lv*H/6.4, w=bw-(bw-tw)*(lv/6.4);
+    beam([-w,y,-w*0.8],[w,y,-w*0.8],0.05,MAT.amber,g);
+    beam([-w,y, w*0.8],[w,y, w*0.8],0.05,MAT.amber,g);
+    beam([-w,y,-w*0.8],[-w,y, w*0.8],0.05,MAT.amber,g);
+    beam([ w,y,-w*0.8],[ w,y, w*0.8],0.05,MAT.amber,g);
+  }
+  /* قطريات X بكل وجه وكل مستوى */
+  for(var xv=0;xv<6;xv++){
+    var y1=base+xv*H/6.4, y2=base+(xv+1)*H/6.4;
+    var w1=bw-(bw-tw)*(xv/6.4), w2=bw-(bw-tw)*((xv+1)/6.4);
+    beam([-w1,y1,-w1*0.8],[ w2,y2,-w2*0.8],0.035,MAT.amber,g);
+    beam([ w1,y1,-w1*0.8],[-w2,y2,-w2*0.8],0.035,MAT.amber,g);
+    beam([-w1,y1, w1*0.8],[ w2,y2, w2*0.8],0.035,MAT.amber,g);
+    beam([ w1,y1, w1*0.8],[-w2,y2, w2*0.8],0.035,MAT.amber,g);
+    beam([-w1,y1,-w1*0.8],[-w2,y2, w2*0.8],0.035,MAT.amber,g);
+    beam([ w1,y1,-w1*0.8],[ w2,y2, w2*0.8],0.035,MAT.amber,g);
+    beam([-w1,y1, w1*0.8],[-w2,y2,-w2*0.8],0.035,MAT.amber,g);
+    beam([ w1,y1, w1*0.8],[ w2,y2,-w2*0.8],0.035,MAT.amber,g);
+  }
+  /* كتلة التاج: جسر + 5 بكرات */
+  box(tw*2+0.6,0.3,tw*1.6+0.6,MAT.darkSteel,0,base+H+0.2,0,g);
+  for(var shv=0;shv<5;shv++){
+    var wheelW=wheel(-0.7+shv*0.35,base+H+0.42,0,0.16,MAT.steel,g,'x');
+  }
+  /* عواصب سلك: خطوط من التاج للبلوك المتحرك */
+  var trav=box(0.9,0.9,0.9,MAT.amber,0,1.6,0,g);
+  for(var wl=0;wl<4;wl++) beam([-0.6+wl*0.4,base+H+0.3,0],[-0.32+wl*0.22,1.95,0],0.02,MAT.steel,g);
+  cyl(0.05,0.05,3.4,MAT.steel,0,0.3,0,g);
+  /* طاولة الحفر ودورانها */
+  cyl(1.0,1.0,0.22,MAT.darkSteel,0,-0.1,0,g);
+  tor(0.8,0.06,MAT.red,0,-0.05,0,g).rotation.x=Math.PI/2;
+  box(2.6,0.12,2.6,MAT.darkSteel,0,-0.28,0,g);
+  /* سلم صاعد بجانب البرج */
+  for(var st=0;st<16;st++) box(0.5,0.04,0.14,MAT.steel,bw+0.12,base+0.2+st*0.42,bw*0.4,g);
+  /* خزانات طين بجانب القاعدة */
+  cyl(0.7,0.7,2.2,MAT.blue,-4.0,-0.35,1.0,g).rotation.z=Math.PI/2;
+  capsule(0.55,1.4,MAT.blue,-4.0,0.35,1.0,g);
+  cyl(0.6,0.6,1.8,MAT.orange,-4.0,-0.4,-1.0,g).rotation.z=Math.PI/2;
+  /* أنبوب طين راجع */
+  pipeRun([[-3.2,-0.3,1.0],[-2.2,0.4,0.6],[-1.2,-0.2,0.4]],0.08,MAT.steel,g);
+  /* مكائن الرفع: drawworks */
+  box(1.6,1.1,1.3,MAT.red,-2.8,-0.05,-1.4,g);
+  cyl(0.55,0.55,0.5,MAT.darkSteel,-2.8,0.75,-1.4,g).rotation.x=Math.PI/2;
+  hazard(0,-0.75,2.6,0.9,g);
 }
 function buildBit(g){
-  /* رأس ثلاثي المخاريط: ساق ملولبة API، جسم، 3 مخاريط بصفوف حشوات كربيد، فوهات نفث */
-  cyl(0.34,0.34,0.95,MAT.darkSteel,0,2.75,0,g);
-  for(var i=0;i<5;i++) tor(0.35,0.045,MAT.steel,0,2.42+i*0.17,0,g).rotation.x=Math.PI/2;
-  cyl(0.52,0.52,0.45,MAT.amber,0,2.0,0,g);
-  hexRing(g);
-  function hexRing(gr){ var hx=cyl(0.56,0.56,0.3,MAT.darkSteel,0,1.72,0,gr); }
-  cyl(0.66,0.54,0.75,MAT.darkSteel,0,1.28,0,g);
-  for(var a=0;a<3;a++){
-    var ang=a*Math.PI*2/3;
-    box(0.2,0.75,0.5,MAT.darkSteel,Math.cos(ang)*0.52,1.15,Math.sin(ang)*0.52,g).rotation.y=-ang;
-    var cg=new THREE.Group(); cg.position.set(Math.cos(ang)*0.5,0.28,Math.sin(ang)*0.5); cg.rotation.z=0.62; cg.rotation.y=-ang; g.add(cg);
-    var cn=cone(0.6,1.1,MAT.black,0,0,0,cg); cn.rotation.x=Math.PI;
-    for(var row=0;row<4;row++){
-      var cnt=5+row, rr=0.14+row*0.115, yy=-0.38+row*0.24;
-      for(var t=0;t<cnt;t++){
-        var aa=t/cnt*Math.PI*2+row*0.45;
-        sph(0.068,(row%2? MAT.steel:MAT.brass),Math.cos(aa)*rr,yy,Math.sin(aa)*rr,cg);
-      }
+  /* رأس حفر ثلاثي: عنق ملولب، تاج مخروطي، ثلاثة مخاريط بأسنان مزدوجة الصفوف، فتحات رش بنفاثات، محامل */
+  cyl(0.34,0.34,1.7,MAT.steel,0,2.85,0,g);
+  for(var th=0;th<12;th++) tor(0.355,0.028,MAT.darkSteel,0,2.25+th*0.115,0,g).rotation.x=Math.PI/2;
+  cyl(0.4,0.4,0.5,MAT.darkSteel,0,1.95,0,g);
+  cyl(0.62,0.5,1.2,MAT.darkSteel,0,1.2,0,g);
+  cyl(0.72,0.62,0.55,MAT.steel,0,0.55,0,g);
+  tor(0.66,0.05,MAT.amber,0,0.28,0,g).rotation.x=Math.PI/2;
+  cyl(0.75,0.7,0.7,MAT.steel,0,-0.15,0,g);
+  /* ثلاثة أذرع الشفة */
+  for(var lg=0;lg<3;lg++){
+    var la=lg*Math.PI*2/3;
+    var sh=cyl(0.24,0.42,1.5,MAT.steel,Math.cos(la)*0.42,-0.85,Math.sin(la)*0.42,g);
+    sh.rotation.set(Math.sin(la)*0.55,0,-Math.cos(la)*0.55);
+    box(0.5,0.9,0.34,MAT.darkSteel,Math.cos(la)*0.6,-0.35,Math.sin(la)*0.6,g).rotation.y=-la;
+  }
+  /* المخاريط: أسنان خارجية + صفوف داخلية + محامل */
+  for(var c=0;c<3;c++){
+    var ca=c*Math.PI*2/3;
+    var cx=Math.cos(ca)*0.52, cz=Math.sin(ca)*0.52;
+    var coneG=cone(0.52,0.95,MAT.rust,cx,-1.15,cz,g);
+    coneG.rotation.set(Math.cos(ca)*0.42,0,-Math.sin(ca)*0.42);
+    /* أسنان صف خارجي */
+    for(var t1=0;t1<9;t1++){
+      var ta=t1*Math.PI*2/9;
+      var tooth=box(0.1,0.14,0.16,MAT.chrome,cx+Math.cos(ta)*0.42,-1.15+Math.sin(t1*0.55)*0.28,cz+Math.sin(ta)*0.42,g);
+      tooth.rotation.set(Math.cos(ca)*0.42,ta,-Math.sin(ca)*0.42);
     }
-    sph(0.09,MAT.brass,0,-0.52,0,cg);
-    var nz=cyl(0.085,0.13,0.34,MAT.brass,Math.cos(ang+0.52)*0.3,0.98,Math.sin(ang+0.52)*0.3,g);
-    nz.rotation.z=Math.cos(ang+0.52)*0.5; nz.rotation.x=-Math.sin(ang+0.52)*0.5;
-    cyl(0.05,0.05,0.1,MAT.black,Math.cos(ang+0.52)*0.34,0.84,Math.sin(ang+0.52)*0.34,g);
-    box(0.34,0.5,0.14,MAT.steel,Math.cos(ang)*0.68,1.05,Math.sin(ang)*0.68,g).rotation.y=-ang+Math.PI/2;
+    /* صف أسنان داخلي */
+    for(var t2=0;t2<7;t2++){
+      var tb=t2*Math.PI*2/7;
+      var tooth2=box(0.08,0.11,0.12,MAT.chrome,cx+Math.cos(tb)*0.26,-1.2+Math.sin(t2*0.6)*0.2,cz+Math.sin(tb)*0.26,g);
+      tooth2.rotation.set(Math.cos(ca)*0.42,tb,-Math.sin(ca)*0.42);
+    }
+    /* محامل ومسامير التنظيف */
+    sph(0.09,MAT.amber,cx*1.15,-0.75,cz*1.15,g);
+    sph(0.08,MAT.amber,cx*1.15,-1.5,cz*1.15,g);
   }
-  cyl(0.54,0.66,0.3,MAT.orange,0,0.72,0,g);
-  /* دقة إضافية: صف خامس من الحشوات + أخاديد تزييت + حلقة قياس التآكل */
-  for(var a2=0;a2<3;a2++){
-    var ang2=a2*Math.PI*2/3;
-    var cg2=new THREE.Group(); cg2.position.set(Math.cos(ang2)*0.5,0.28,Math.sin(ang2)*0.5); cg2.rotation.z=0.62; cg2.rotation.y=-ang2; g.add(cg2);
-    for(var t2=0;t2<9;t2++){ var aa2=t2/9*Math.PI*2+0.2; sph(0.055,MAT.chrome,Math.cos(aa2)*0.52,-0.06,Math.sin(aa2)*0.52,cg2); }
+  /* فتحات الرش: ثلاثة نفاثات */
+  for(var nz=0;nz<3;nz++){
+    var na=nz*Math.PI*2/3+0.5;
+    cyl(0.09,0.13,0.3,MAT.brass,Math.cos(na)*0.6,0.12,Math.sin(na)*0.6,g).rotation.set(Math.cos(na)*0.7,0,-Math.sin(na)*0.7);
+    sph(0.06,MAT.amber,Math.cos(na)*0.72,-0.08,Math.sin(na)*0.72,g);
   }
-  tor(0.53,0.035,MAT.red,0,1.62,0,g).rotation.x=Math.PI/2;
-  for(var grv=0;grv<6;grv++) box(0.06,0.5,0.05,MAT.black,Math.cos(grv*1.047)*0.6,1.28,Math.sin(grv*1.047)*0.6,g).rotation.y=-grv*1.047;
+  cyl(0.55,0.65,0.35,MAT.darkSteel,0,-0.55,0,g);
 }
 function buildBop(g){
-  /* مانع انفجار: شفة بئر، بكرة حفر، مانع كبّاش مزدوج، مانع حلقي، وحدة مجمّعات هيدروليكية */
-  box(6.6,0.24,2.8,MAT.black,0,-2.32,0,g);
-  cyl(0.85,0.95,0.7,MAT.darkSteel,0,-1.85,0,g);
-  flange(1.18,0.2,MAT.steel,0,-1.45,0,g);
-  cyl(0.98,1.08,0.75,MAT.red,0,-1.0,0,g);
-  var out1=cyl(0.24,0.24,0.7,MAT.red,-1.3,-1.0,0,g); out1.rotation.z=Math.PI/2;
-  var out2=cyl(0.24,0.24,0.7,MAT.red,1.3,-1.0,0,g); out2.rotation.z=Math.PI/2;
-  flange(0.42,0.14,MAT.steel,-1.72,-1.0,0,g).rotation.z=Math.PI/2;
-  wheel(-1.95,-0.45,0,0.3,MAT.red,g);
-  cyl(0.09,0.09,0.4,MAT.darkSteel,-1.95,-0.78,0,g);
-  box(2.0,0.95,1.55,MAT.red,0,-0.15,0,g);
-  box(0.55,0.7,1.2,MAT.darkSteel,-1.28,-0.15,0,g);
-  box(0.55,0.7,1.2,MAT.darkSteel,1.28,-0.15,0,g);
-  var hc1=cyl(0.3,0.3,0.85,MAT.steel,-1.95,-0.15,0,g); hc1.rotation.z=Math.PI/2;
-  var hc2=cyl(0.3,0.3,0.85,MAT.steel,1.95,-0.15,0,g); hc2.rotation.z=Math.PI/2;
-  cyl(0.34,0.34,0.18,MAT.darkSteel,-2.42,-0.15,0,g).rotation.z=Math.PI/2;
-  cyl(0.34,0.34,0.18,MAT.darkSteel,2.42,-0.15,0,g).rotation.z=Math.PI/2;
-  box(2.0,0.85,1.55,MAT.red,0,0.78,0,g);
-  box(0.5,0.62,1.15,MAT.darkSteel,-1.25,0.78,0,g);
-  box(0.5,0.62,1.15,MAT.darkSteel,1.25,0.78,0,g);
-  var hc3=cyl(0.27,0.27,0.75,MAT.steel,-1.85,0.78,0,g); hc3.rotation.z=Math.PI/2;
-  var hc4=cyl(0.27,0.27,0.75,MAT.steel,1.85,0.78,0,g); hc4.rotation.z=Math.PI/2;
-  cyl(0.8,1.0,0.85,MAT.darkSteel,0,1.62,0,g);
-  var dome=sph(0.8,MAT.darkSteel,0,2.0,0,g); dome.scale.y=0.6;
-  flange(1.05,0.2,MAT.steel,0,2.32,0,g);
-  cyl(0.62,0.62,0.3,MAT.darkSteel,0,2.55,0,g);
-  for(var bt=0;bt<3;bt++) capsule(0.3,0.95,MAT.blue,2.95,-1.55,-0.55+bt*0.55,g);
-  box(1.0,0.14,1.9,MAT.darkSteel,2.95,-2.14,0,g);
-  box(0.7,1.0,0.25,MAT.white,2.95,-0.75,0.85,g);
-  gauge(2.95,-0.55,1.0,0.17,g,-0.4);
-  beam([1.6,0.4,0.6],[2.8,-0.6,0.6],0.05,MAT.blue,g);
-  beam([1.6,0.9,0.6],[2.8,-0.3,0.3],0.05,MAT.blue,g);
-  /* دقة إضافية: خط خانق وقتل جانبيان + مقاييس + براغي شفة كاملة */
-  pipeRun([[-1.05,-0.15,0.78],[-2.1,-0.15,0.78],[-2.1,-1.2,0.78]],0.09,MAT.yellow,g);
-  pipeRun([[1.05,0.78,0.78],[2.1,0.78,0.78],[2.1,-0.2,0.78]],0.09,MAT.orange,g);
-  gauge(-1.05,0.35,0.85,0.15,g,-0.3);
-  gauge(1.05,1.15,0.85,0.15,g,-0.3);
-  hazard(0,-1.32,1.42,1.8,g);
-  plate(0,0.78,0.8,0.8,0.42,g);
+  /* مانع انفجار: عنق بئر، حلقي مطاطي، حزمتا فكّوك بصواميل كاملة، أذرع تشغيل، خزانات هيدروليك، مخططات أمان */
+  cyl(0.7,0.7,1.0,MAT.darkSteel,0,-2.3,0,g);
+  cyl(1.0,1.0,0.5,MAT.steel,0,-1.6,0,g);
+  /* stack of bodies */
+  var lv=[[1.15,1.0,1.0,MAT.green,'ann'],[1.2,0.95,1.05,MAT.red,'ram'],[1.2,0.95,1.05,MAT.red,'ram'],[1.1,0.85,0.9,MAT.darkSteel,'blk']];
+  var yy=-1.2;
+  for(var si=0;si<lv.length;si++){
+    var L=lv[si];
+    var h=L[2];
+    cyl(L[0],L[0],h,L[3],0,yy-h/2,0,g);
+    flange(L[0]+0.09,0.16,MAT.darkSteel,0,yy+0.02,0,g);
+    /* حلقة صواميل كاملة حول كل فلنجة */
+    boltRing(L[0]+0.02,0.055,0.2,MAT.steel,0,yy-0.1,0,g,14);
+    if(L[4]==='ram'){
+      /* أذرع فكّوك جانبية بمسامير ومقابض */
+      for(var sd=0;sd<2;sd++){
+        var dx=sd?1:-1;
+        box(0.9,0.55,0.7,MAT.darkSteel,dx*(L[0]+0.45),yy-h/2,0,g);
+        cyl(0.1,0.1,0.9,MAT.steel,dx*(L[0]+1.0),yy-h/2+0.35,0,g);
+        wheel(dx*(L[0]+1.0),yy-h/2+0.85,0,0.3,MAT.yellow,g);
+        cyl(0.07,0.07,0.5,MAT.steel,dx*(L[0]+0.9),yy-h/2-0.2,0,g);
+      }
+      /* زوج فكّوك داخلي يظهر من الجسم */
+      box(0.28,0.32,0.5,MAT.chrome,0.45,yy-h/2,0,g);
+      box(0.28,0.32,0.5,MAT.chrome,-0.45,yy-h/2,0,g);
+    }
+    if(L[4]==='ann'){
+      /* عنصر مطاطي حلقي */
+      tor(L[0]-0.12,0.12,MAT.rubber,0,yy-h/2,0,g).rotation.x=Math.PI/2;
+      cyl(0.3,0.3,0.5,MAT.darkSteel,0,yy-h/2,0,g);
+    }
+    yy-=h+0.14;
+  }
+  /* عنق بئر سفلي وفلنجة قاعدة */
+  cyl(0.55,0.55,0.6,MAT.steel,0,yy,0,g);
+  flange(0.8,0.2,MAT.darkSteel,0,yy-0.4,0,g);
+  /* خزانات المجمع الهيدروليكي */
+  for(var ac=0;ac<2;ac++){
+    var ax=ac?2.6:-2.6;
+    capsule(0.55,1.6,MAT.blue,ax,-0.4,1.6,g);
+    box(0.8,0.2,0.8,MAT.darkSteel,ax,-1.45,1.6,g);
+    cyl(0.09,0.09,1.1,MAT.steel,ax,0.7,1.6,g);
+    gauge(ax,1.35,1.6,0.22,g,-0.3);
+    pipeRun([[ax,-0.4,1.05],[ax*0.55,-0.4,0.6],[ax*0.5,-1.6,0.5]],0.07,MAT.steel,g);
+  }
+  /* لوحة تحكم */
+  box(0.9,1.3,0.5,MAT.amber,2.5,0.3,-1.7,g);
+  for(var bt=0;bt<6;bt++) sph(0.06,MAT.red,2.28+(bt%2)*0.45,0.85-Math.floor(bt/2)*0.35,-1.42,g);
+  hazard(0,-2.15,0.72,0.7,g);
 }
 function buildMudPump(g){
-  /* مضخّة طين ثلاثية: محرك، طرف قدرة بعمود مرفقي، طرف سائل بثلاث أسطوانات، مخمّد نبض */
-  box(6.4,0.26,2.4,MAT.black,0,-1.32,0,g);
-  var motor=cyl(0.62,0.62,1.15,MAT.blue,-2.75,-0.45,0,g); motor.rotation.z=Math.PI/2;
-  for(var fn=0;fn<5;fn++) tor(0.63,0.04,MAT.darkSteel,-3.15+fn*0.2,-0.45,0,g).rotation.y=Math.PI/2;
-  cyl(0.2,0.2,0.4,MAT.darkSteel,-2.75,0.28,0,g);
-  box(2.3,1.85,1.8,MAT.blue,-1.15,-0.25,0,g);
-  box(2.4,0.35,1.9,MAT.darkSteel,-1.15,0.85,0,g);
-  for(var cv=0;cv<3;cv++){ var cover=cyl(0.3,0.3,0.12,MAT.darkSteel,-1.85+cv*0.7,-0.25,0.95,g); cover.rotation.x=Math.PI/2; }
-  var fly=wheel(-1.15,-0.25,-1.12,0.78,MAT.darkSteel,g,"z");
-  box(2.35,1.55,1.75,MAT.steel,1.55,-0.4,0,g);
-  for(var i=0;i<3;i++){
-    var x=0.85+i*0.72;
-    var head=cyl(0.33,0.33,0.3,MAT.amber,x,-0.4,1.0,g); head.rotation.x=Math.PI/2;
-    cyl(0.2,0.2,0.16,MAT.darkSteel,x,-0.4,1.2,g,6).rotation.x=Math.PI/2;
-    cyl(0.26,0.26,0.3,MAT.darkSteel,x,0.55,0,g);
-    cyl(0.13,0.13,0.2,MAT.brass,x,0.78,0,g,6);
-    beam([-0.15,-0.35,0],[0.6,-0.35,0],0.09,MAT.steel,g);
-    cyl(0.1,0.1,0.85,MAT.steel,x-0.62,-0.35,0,g).rotation.z=Math.PI/2;
+  /* مضخة طين ديزل: إطار، محرك، رأس مكابس مزدوج، تجويف طين، أنابيب سحب ودفعه بنبضات، خط ضغط عالٍ */
+  box(4.6,0.5,2.6,MAT.darkSteel,0,-1.3,0,g);
+  for(var wb=0;wb<4;wb++) sph(0.2,MAT.black,-1.9+wb*1.3,-1.6,1.2,g);
+  /* محرك ديزل */
+  box(1.9,1.5,1.6,MAT.blue,-1.4,-0.2,0,g);
+  cyl(0.5,0.5,0.7,MAT.darkSteel,-1.4,0.85,0,g);
+  for(var rg=0;rg<3;rg++) cyl(0.55,0.55,0.12,MAT.amber,-1.4,0.6+rg*0.25,0,g);
+  /* نظام المكابس الثلاثي */
+  box(1.6,1.3,1.8,MAT.green,0.8,-0.15,0,g);
+  for(var pc=0;pc<3;pc++){
+    var py=-0.65+pc*0.65;
+    cyl(0.32,0.32,0.7,MAT.chrome,1.9,py,0,g).rotation.z=Math.PI/2;
+    cyl(0.4,0.4,0.35,MAT.darkSteel,2.35,py,0,g);
+    cyl(0.1,0.1,0.5,MAT.steel,1.55,py,0,g).rotation.z=Math.PI/2;
   }
-  beam([0.5,0.95,0],[2.6,0.95,0],0.17,MAT.red,g);
-  capsule(0.32,0.6,MAT.red,2.35,1.45,0,g);
-  gauge(2.35,1.15,0.3,0.16,g,-0.5);
-  var dis=cyl(0.2,0.2,0.5,MAT.red,2.85,0.95,0,g); dis.rotation.z=Math.PI/2;
-  beam([0.5,-1.0,0.75],[2.6,-1.0,0.75],0.16,MAT.teal,g);
-  var suc=cyl(0.24,0.24,0.6,MAT.teal,0.2,-1.0,0.75,g); suc.rotation.x=Math.PI/2;
-  box(1.1,0.5,0.9,MAT.darkSteel,1.55,-1.05,-0.6,g);
-  /* دقة إضافية: بطانات قابلة للتبديل مكدّسة + خط تزييت + لوحة */
-  for(var ln=0;ln<3;ln++){ var liner=cyl(0.24,0.24,0.5,MAT.chrome,-2.2+ln*0.55,-1.02,0.95,g); liner.rotation.x=Math.PI/2; }
-  pipeRun([[-1.9,0.65,-0.92],[-0.2,0.65,-0.92],[1.2,0.3,-0.92]],0.045,MAT.brass,g);
-  hazard(1.55,-0.4,0.9,1.6,g);
-  plate(-1.15,0.15,0.92,0.85,0.45,g);
+  /* بوابة طين جانبية وغطاء شبكي */
+  cyl(0.45,0.45,0.9,MAT.amber,0.8,-0.15,1.2,g).rotation.x=Math.PI/2;
+  for(var gr=0;gr<4;gr++) box(0.8,0.05,0.05,MAT.steel,0.4+gr*0.22,-0.15,1.68,g);
+  /* أنبوب سحب */
+  pipeRun([[-2.6,-1.0,1.2],[-2.6,0.5,1.2],[-1.6,0.5,1.0]],0.16,MAT.steel,g);
+  /* خط الدفع عالي الضغط مع مخفف نبضات */
+  cyl(0.14,0.14,1.2,MAT.steel,2.6,-0.5,0,g).rotation.z=Math.PI/2;
+  capsule(0.3,0.6,MAT.darkSteel,3.4,-0.5,0,g).rotation.z=Math.PI/2;
+  pipeRun([[3.8,-0.5,0],[4.4,-0.5,0],[4.4,0.6,0]],0.11,MAT.steel,g);
+  wheel(4.4,0.9,0,0.26,MAT.red,g);
+  gauge(2.6,-0.1,0.45,0.22,g,-0.3);
+  gauge(3.4,-0.1,0.4,0.2,g,-0.3);
+  hazard(1.0,-1.0,1.4,1.2,g);
 }
 function buildTree(g){
-  /* شجرة إنتاج API 6A: شفة قاعدة، صمّام رئيسي، صمّاما جناح، خانق، صمّام مسح علوي، مقياس */
+  /* شجرة إنتاج API 6A: شفة قاعدة بصواميل، صمّام رئيسي، صمّاما جناح، خانق بإبرة، صمّام مسح علوي، مقاييس وسلسلة قفل */
   cyl(0.8,0.9,0.6,MAT.darkSteel,0,-2.15,0,g);
   flange(1.22,0.22,MAT.steel,0,-1.8,0,g);
+  boltRing(1.1,0.06,0.26,MAT.steel,0,-1.75,0,g,14);
   cyl(0.6,0.68,0.75,MAT.steel,0,-1.35,0,g);
   tor(0.62,0.06,MAT.amber,0,-1.05,0,g).rotation.x=Math.PI/2;
   box(1.0,0.85,1.0,MAT.red,0,-0.55,0,g);
@@ -797,250 +816,282 @@ function buildTree(g){
   cyl(0.4,0.4,1.1,MAT.steel,0,0.45,0,g);
   tor(0.44,0.055,MAT.darkSteel,0,0.08,0,g).rotation.x=Math.PI/2;
   var cross=cyl(0.33,0.33,3.9,MAT.steel,0,0.45,0,g); cross.rotation.z=Math.PI/2;
-  box(0.72,0.72,0.72,MAT.red,-1.45,0.45,0,g);
-  box(0.72,0.72,0.72,MAT.red,1.45,0.45,0,g);
-  cyl(0.2,0.2,0.45,MAT.darkSteel,-1.45,0.95,0,g);
-  cyl(0.2,0.2,0.45,MAT.darkSteel,1.45,0.95,0,g);
-  wheel(-1.45,1.32,0,0.4,MAT.red,g,"z");
-  wheel(1.45,1.32,0,0.4,MAT.red,g,"z");
-  flange(0.45,0.14,MAT.steel,-2.12,0.45,0,g).rotation.z=Math.PI/2;
+  /* جناحان بمغلاقات وصواميل */
+  for(var wd=0;wd<2;wd++){
+    var dx=wd?1:-1;
+    box(0.72,0.72,0.72,MAT.red,dx*1.45,0.45,0,g);
+    boltRing(0.4,0.045,0.18,MAT.steel,dx*1.45,0.85,0,g,10);
+    cyl(0.2,0.2,0.45,MAT.darkSteel,dx*1.45,0.95,0,g);
+    wheel(dx*1.45,1.32,0,0.4,MAT.red,g,"z");
+    flange(0.45,0.14,MAT.steel,dx*2.12,0.45,0,g).rotation.z=Math.PI/2;
+  }
+  /* خانق بإبرة ومقبض */
   box(0.55,0.55,0.55,MAT.amber,2.05,0.45,0,g);
   flange(0.45,0.14,MAT.steel,2.42,0.45,0,g).rotation.z=Math.PI/2;
   elbow(0.45,0.17,MAT.steel,2.6,0.02,0,g,0,0,Math.PI);
   cyl(0.17,0.17,1.3,MAT.steel,3.05,-0.75,0,g);
+  wheel(3.05,-0.1,0,0.28,MAT.yellow,g);
+  /* صمام مسح علوي */
   flange(1.0,0.18,MAT.steel,0,1.12,0,g);
+  boltRing(0.88,0.05,0.22,MAT.steel,0,1.16,0,g,12);
   cyl(0.42,0.42,0.6,MAT.red,0,1.5,0,g);
   wheel(0,2.05,0,0.48,MAT.red,g,"z");
   cyl(0.15,0.15,0.3,MAT.darkSteel,0,1.85,0,g);
+  /* مقاييس وسباكة أمان */
   cyl(0.05,0.05,0.55,MAT.brass,-0.55,0.95,0.15,g).rotation.z=0.6;
   gauge(-0.85,1.3,0.25,0.21,g,-0.35);
+  gauge(0.85,1.3,0.25,0.21,g,-0.35);
   wheel(-0.62,0.62,0.55,0.2,MAT.amber,g);
-  /* دقة إضافية: صمّام أمان سفلي + سلسلة قفل للعجلات + لوحة ضغط */
-  cyl(0.12,0.16,0.4,MAT.brass,0.55,-1.55,-0.3,g);
-  beam([-1.45,1.32,0.14],[-1.2,1.05,0.14],0.025,MAT.black,g);
-  beam([1.45,1.32,0.14],[1.2,1.05,0.14],0.025,MAT.black,g);
-  plate(0,-0.55,0.52,0.62,0.34,g);
+  /* سلسلة قفل بين العجلات */
+  for(var ch=0;ch<8;ch++) sph(0.05,MAT.darkSteel,-1.45+ch*0.2,1.36,0.12,g);
+  cyl(0.12,0.12,0.35,MAT.darkSteel,0,-0.98,0,g);
+  hazard(0,-2.05,0.9,0.75,g);
 }
 function buildSeparator(g){
-  /* فاصل ثلاثي الأطوار أفقي: وعاء بغطاءين مقوّسين، سرجين، مدخل، مخرج غاز، زجاجة بيان، PSV، فتحة تفتيش */
-  var body=cyl(1.12,1.12,4.6,MAT.orange,0,0.35,0,g); body.rotation.z=Math.PI/2;
-  var h1=sph(1.12,MAT.orange,-2.3,0.35,0,g); h1.scale.x=0.5;
-  var h2=sph(1.12,MAT.orange,2.3,0.35,0,g); h2.scale.x=0.5;
-  tor(1.13,0.05,MAT.darkSteel,-1.55,0.35,0,g).rotation.y=Math.PI/2;
-  tor(1.13,0.05,MAT.darkSteel,1.55,0.35,0,g).rotation.y=Math.PI/2;
-  box(1.0,0.85,1.7,MAT.darkSteel,-1.4,-1.05,0,g);
-  box(1.0,0.85,1.7,MAT.darkSteel,1.4,-1.05,0,g);
-  box(1.3,0.16,2.0,MAT.black,-1.4,-1.52,0,g);
-  box(1.3,0.16,2.0,MAT.black,1.4,-1.52,0,g);
-  cyl(0.2,0.2,0.85,MAT.steel,-1.85,1.8,0,g);
-  elbow(0.42,0.2,MAT.steel,-2.27,2.2,0,g,0,Math.PI/2,0);
-  cyl(0.2,0.2,0.9,MAT.steel,-2.72,2.2,0,g).rotation.z=Math.PI/2;
-  flange(0.34,0.12,MAT.darkSteel,-3.2,2.2,0,g).rotation.z=Math.PI/2;
-  cyl(0.42,0.42,0.55,MAT.darkSteel,1.65,1.7,0,g);
-  cyl(0.2,0.2,0.5,MAT.steel,1.65,2.15,0,g);
-  flange(0.32,0.12,MAT.steel,1.65,2.42,0,g);
-  cyl(0.09,0.13,0.5,MAT.brass,0.25,1.72,0,g);
-  cyl(0.16,0.16,0.35,MAT.brass,0.25,2.05,0,g);
-  cyl(0.15,0.15,0.75,MAT.steel,0.95,-1.05,0,g);
-  wheel(0.95,-0.62,0.3,0.26,MAT.red,g);
-  cyl(0.15,0.15,0.75,MAT.steel,-0.95,-1.05,0,g);
-  var mw=cyl(0.52,0.52,0.28,MAT.darkSteel,2.92,0.35,0,g); mw.rotation.z=Math.PI/2;
-  for(var mb2=0;mb2<8;mb2++){ var ma=mb2*Math.PI/4; var bb=cyl(0.05,0.05,0.36,MAT.steel,2.92,0.35+Math.cos(ma)*0.42,Math.sin(ma)*0.42,g); bb.rotation.z=Math.PI/2; }
-  cyl(0.07,0.07,0.3,MAT.brass,1.95,1.15,1.05,g);
-  cyl(0.07,0.07,0.3,MAT.brass,1.95,-0.5,1.05,g);
-  cyl(0.075,0.075,1.35,MAT.glass,1.95,0.32,1.18,g);
-  cyl(0.055,0.055,0.62,MAT.teal,1.95,0.0,1.18,g);
-  box(2.6,0.1,0.5,MAT.darkSteel,0,1.56,0,g);
-  for(var rp=0;rp<4;rp++) cyl(0.04,0.04,0.55,MAT.darkSteel,-1.2+rp*0.8,1.85,0.22,g);
-  beam([-1.3,2.12,0.22],[1.3,2.12,0.22],0.035,MAT.darkSteel,g);
-  box(0.7,0.45,0.06,MAT.white,-0.3,0.45,1.14,g);
-  beam([-2.85,1.3,0.6],[-2.85,-1.3,0.6],0.04,MAT.darkSteel,g);
-  beam([-2.5,1.3,0.6],[-2.5,-1.3,0.6],0.04,MAT.darkSteel,g);
-  for(var lr=0;lr<5;lr++) beam([-2.85,1.05-lr*0.55,0.6],[-2.5,1.05-lr*0.55,0.6],0.03,MAT.darkSteel,g);
-  /* دقة إضافية: عوّامة مستوى داخلية ظاهرة + خط تصريف + صمّام مستوى */
-  pipeRun([[0.95,-1.35,0],[0.95,-1.85,0],[2.2,-1.85,0]],0.11,MAT.darkSteel,g);
-  wheel(2.35,-1.85,0,0.24,MAT.red,g,"z");
-  gauge(1.65,2.05,0.42,0.14,g,-0.5);
-  hazard(-1.4,-0.62,1.0,1.2,g);
+  /* فاصل إنتاج: وعاء أفقي بركّات داخلية، سدادات دخول بمخروط تصادم، فاصل ضبابي، مقاييس مستوى، أرجل وسلّم */
+  var shell=cyl(1.35,1.35,5.2,MAT.white,0,0.2,0,g);
+  shell.rotation.z=Math.PI/2;
+  /* رؤوس نصف كروية */
+  sph(1.35,MAT.white,-2.6,0.2,0,g).scale.z=0.6;
+  sph(1.35,MAT.white,2.6,0.2,0,g).scale.z=0.6;
+  /* حلقات تقوية */
+  for(var rr=0;rr<4;rr++) tor(1.37,0.05,MAT.steel,-1.8+rr*1.2,0.2,0,g).rotation.y=Math.PI/2;
+  /* مدخل بمخروط تصادم */
+  cyl(0.4,0.4,1.0,MAT.steel,-3.3,1.0,0,g).rotation.z=Math.PI/2;
+  cone(0.5,0.8,MAT.amber,-2.55,1.0,0,g).rotation.z=-Math.PI/2;
+  plate(-2.35,1.0,0,1.1,0.8,MAT.steel,g);
+  plate(-2.05,0.75,0,1.1,0.8,MAT.steel,g);
+  /* فاصل الضباب بالمخرج */
+  box(0.5,1.6,1.6,MAT.blue,2.2,0.2,0,g);
+  cyl(0.3,0.3,0.8,MAT.steel,3.0,1.0,0,g).rotation.z=Math.PI/2;
+  /* مخارج سفلية: نفط وماء */
+  cyl(0.26,0.26,0.8,MAT.green,-1.2,-1.35,0,g);
+  wheel(-1.2,-1.85,0,0.25,MAT.red,g);
+  cyl(0.22,0.22,0.8,MAT.teal,1.2,-1.35,0,g);
+  wheel(1.2,-1.85,0,0.25,MAT.red,g);
+  /* أنبوب غاز علوي بصمام */
+  cyl(0.22,0.22,0.7,MAT.blue,0,1.85,0,g);
+  wheel(0,2.2,0,0.28,MAT.red,g);
+  /* مقياس مستوى زجاجي */
+  cyl(0.1,0.1,2.2,MAT.glass,0.5,-0.4,1.28,g);
+  for(var mkt=0;mkt<5;mkt++) tor(0.12,0.02,MAT.darkSteel,0.5,-1.2+mkt*0.55,1.28,g).rotation.x=Math.PI/2;
+  /* سلّم فحص علوي */
+  for(var st=0;st<7;st++) box(0.7,0.04,0.12,MAT.steel,-0.6,0.9+st*0.22,1.28,g);
+  /* أرجل وقاعدة */
+  box(0.4,1.2,1.6,MAT.darkSteel,-1.8,-1.0,0,g);
+  box(0.4,1.2,1.6,MAT.darkSteel,1.8,-1.0,0,g);
+  box(5.4,0.2,2.4,MAT.black,0,-1.75,0,g);
+  gauge(-2.9,1.6,0.5,0.24,g,-0.35);
+  hazard(0,-1.5,1.3,0.9,g);
 }
 function buildESP(g){
-  /* مضخّة غاطسة بترتيب حقيقي: رأس تفريغ، مراحل طرد، مدخل بمصفاة، فاصل غاز، حامٍ، محرك، كيبل */
-  cyl(0.15,0.15,1.3,MAT.steel,0,3.6,0,g);
-  cyl(0.4,0.44,0.5,MAT.darkSteel,0,2.75,0,g);
-  tor(0.42,0.05,MAT.amber,0,2.52,0,g).rotation.x=Math.PI/2;
-  for(var i=0;i<9;i++){
-    cyl(0.45,0.45,0.15,(i%2? MAT.steel:MAT.darkSteel),0,2.28-i*0.19,0,g);
-    tor(0.46,0.03,MAT.black,0,2.19-i*0.19,0,g).rotation.x=Math.PI/2;
+  /* مضخة غاطسة: مقطع بئر، محرك بمبرد، حاجز، أقسام مضخة متعددة بشفرة، ماسورة إنتاج، كابل نازل بمشابك */
+  cyl(1.15,1.15,1.2,MAT.darkSteel,0,2.2,0,g);
+  cyl(1.0,1.0,7.2,MAT.ground,0,-1.4,0,g);
+  tor(1.0,0.05,MAT.black,0,-1.4,0,g).rotation.x=Math.PI/2;
+  /* الحزمة الغاطسة داخل البئر */
+  cyl(0.32,0.32,2.2,MAT.blue,0,-0.9,0,g);        /* المحرك */
+  for(var fin=0;fin<8;fin++){ var fa=fin*Math.PI/4; box(0.06,2.0,0.16,MAT.darkSteel,Math.cos(fa)*0.33,-0.9,Math.sin(fa)*0.33,g).rotation.y=-fa; }
+  cyl(0.34,0.34,0.4,MAT.darkSteel,0,-2.1,0,g);
+  cyl(0.33,0.33,1.0,MAT.amber,0,-2.85,0,g);      /* الحاجز */
+  /* أقسام المضخة: 7 مراحل بمراوح */
+  for(var stg=0;stg<7;stg++){
+    var sy=-3.6-stg*0.62;
+    cyl(0.36,0.36,0.5,MAT.steel,0,sy,0,g);
+    tor(0.3,0.04,MAT.chrome,0,sy,0,g).rotation.x=Math.PI/2;
+    for(var bl=0;bl<6;bl++){
+      var ba=bl*Math.PI/3;
+      var blade=box(0.05,0.4,0.16,MAT.chrome,Math.cos(ba)*0.2,sy,Math.sin(ba)*0.2,g);
+      blade.rotation.set(Math.sin(ba)*0.5,ba,-Math.cos(ba)*0.5);
+    }
   }
-  cyl(0.43,0.43,0.4,MAT.black,0,0.32,0,g);
-  for(var sl=0;sl<6;sl++) box(0.06,0.26,0.3,MAT.darkSteel,Math.cos(sl*1.047)*0.44,0.32,Math.sin(sl*1.047)*0.44,g).rotation.y=-sl*1.047;
-  cyl(0.5,0.5,0.75,MAT.amber,-0.0,-0.28,0,g);
-  for(var pt=0;pt<6;pt++) cyl(0.06,0.06,0.1,MAT.black,Math.cos(pt*1.047)*0.5,-0.15,Math.sin(pt*1.047)*0.5,g).rotation.z=Math.PI/2;
-  cyl(0.45,0.45,0.85,MAT.blue,0,-1.1,0,g);
-  tor(0.46,0.04,MAT.brass,0,-0.78,0,g).rotation.x=Math.PI/2;
-  tor(0.46,0.04,MAT.brass,0,-1.42,0,g).rotation.x=Math.PI/2;
-  cyl(0.43,0.43,1.6,MAT.blue,0,-2.35,0,g);
-  for(var fr=0;fr<6;fr++) tor(0.44,0.035,MAT.darkSteel,0,-3.0+fr*0.27,0,g).rotation.x=Math.PI/2;
-  var eb=sph(0.43,MAT.darkSteel,0,-3.18,0,g); eb.scale.y=0.55;
-  cone(0.2,0.35,MAT.darkSteel,0,-3.5,0,g).rotation.x=Math.PI;
-  beam([0.56,-3.2,0],[0.56,3.3,0],0.05,MAT.red,g);
-  box(0.1,0.9,0.24,MAT.black,0.52,-2.3,0,g);
-  for(var cl=0;cl<6;cl++) tor(0.55,0.035,MAT.black,0,-2.6+cl*1.05,0,g).rotation.x=Math.PI/2;
-  /* دقة إضافية: حسّاس اهتزاز وحرارة أسفل المحرك + وصلة كيبل مختومة */
-  box(0.34,0.28,0.34,MAT.black,0,-3.02,0,g);
-  cyl(0.07,0.07,0.22,MAT.red,0.2,-3.02,0,g).rotation.z=Math.PI/2;
-  tor(0.16,0.045,MAT.brass,0.56,3.15,0,g).rotation.x=Math.PI/2;
+  /* ماسورة إنتاج */
+  cyl(0.2,0.2,3.2,MAT.steel,0,1.6,0,g);
+  for(var cj=0;cj<3;cj++) tor(0.21,0.03,MAT.darkSteel,0,0.5+cj*1.0,0,g).rotation.x=Math.PI/2;
+  /* كابل الطاقة نازل بمشابك */
+  for(var ck=0;ck<9;ck++) box(0.05,0.4,0.06,MAT.black,0.36,-3.0+ck*0.62,0.15,g);
+  cyl(0.035,0.035,6.5,MAT.black,0.4,0.5,0.15,g);
+  pipeRun([[0.4,3.6,0.15],[0.7,3.9,0.5],[1.5,3.9,0.5]],0.04,MAT.black,g);
+  /* شفة سطحية ومشعب */
+  flange(1.2,0.2,MAT.steel,0,3.35,0,g);
+  boltRing(1.05,0.05,0.24,MAT.steel,0,3.4,0,g,12);
+  box(1.4,0.5,1.0,MAT.green,1.6,3.2,0,g);
+  pipeRun([[0.2,3.3,0],[0.9,3.3,0]],0.14,MAT.steel,g);
+  gauge(1.6,3.7,0.3,0.2,g,-0.3);
+  hazard(0,2.5,0.75,0.7,g);
 }
 function buildPVT(g){
-  /* خلية PVT بغلاف تسخين ومضخّة مكبس يدوية: أغطية مشفّهة، نافذة رؤية، مقياس، أسطوانة عيّنة */
-  box(5.8,0.26,2.7,MAT.black,0,-2.02,0,g);
-  box(0.3,0.75,0.3,MAT.darkSteel,-2.5,-2.5,-1.0,g);
-  box(0.3,0.75,0.3,MAT.darkSteel,2.5,-2.5,-1.0,g);
-  box(0.3,0.75,0.3,MAT.darkSteel,-2.5,-2.5,1.0,g);
-  box(0.3,0.75,0.3,MAT.darkSteel,2.5,-2.5,1.0,g);
-  box(1.15,0.5,1.15,MAT.darkSteel,-1.15,-1.62,0,g);
-  cyl(0.8,0.8,0.32,MAT.amber,-1.15,-1.32,0,g);
-  boltRing(0.66,0.05,0.44,MAT.darkSteel,-1.15,-1.32,0,g,10);
-  cyl(0.86,0.86,1.95,MAT.orange,-1.15,0.28,0,g);
-  tor(0.87,0.05,MAT.darkSteel,-1.15,-0.55,0,g).rotation.x=Math.PI/2;
-  tor(0.87,0.05,MAT.darkSteel,-1.15,0.28,0,g).rotation.x=Math.PI/2;
-  tor(0.87,0.05,MAT.darkSteel,-1.15,1.1,0,g).rotation.x=Math.PI/2;
-  cyl(0.7,0.7,1.7,MAT.steel,-1.15,0.28,0.79,g);
-  box(0.3,1.45,0.09,MAT.glass,-1.15,0.28,0.86,g);
-  box(0.2,0.7,0.05,MAT.teal,-1.15,-0.05,0.9,g);
-  cyl(0.8,0.8,0.32,MAT.amber,-1.15,1.88,0,g);
-  boltRing(0.66,0.05,0.44,MAT.darkSteel,-1.15,1.88,0,g,10);
-  cyl(0.13,0.13,0.45,MAT.brass,-1.15,2.25,0,g);
-  wheel(-1.15,2.55,0,0.3,MAT.red,g,"z");
-  gauge(-0.45,2.1,0.35,0.24,g,-0.4);
-  beam([-1.0,1.95,0.2],[-0.55,2.05,0.3],0.04,MAT.brass,g);
-  cyl(0.11,0.11,0.6,MAT.brass,-1.15,-1.62,0.4,g).rotation.x=0.5;
-  box(0.9,0.42,0.9,MAT.darkSteel,1.15,-1.68,0,g);
-  var barrel=cyl(0.3,0.3,1.9,MAT.blue,1.15,0.55,0,g); barrel.rotation.z=Math.PI/2;
-  flange(0.4,0.16,MAT.steel,0.22,0.55,0,g).rotation.z=Math.PI/2;
-  var rod=cyl(0.12,0.12,1.15,MAT.steel,2.65,0.55,0,g); rod.rotation.z=Math.PI/2;
-  box(1.7,0.09,0.34,MAT.white,1.15,0.92,0,g);
-  for(var tk=0;tk<7;tk++) box(0.04,0.14,0.36,MAT.black,0.45+tk*0.23,0.95,0,g);
-  beam([3.2,-0.5,0],[3.2,1.6,0],0.09,MAT.darkSteel,g);
-  wheel(3.2,0.55,0,0.92,MAT.red,g,"x");
-  box(0.5,0.5,0.5,MAT.darkSteel,3.2,0.55,-0.55,g);
-  beam([-0.35,0.55,-0.5],[0.2,0.55,-0.5],0.06,MAT.brass,g);
-  beam([-0.35,0.55,-0.5],[-1.15,-0.9,-0.5],0.06,MAT.brass,g);
-  wheel(0.1,0.95,-0.5,0.22,MAT.amber,g);
-  capsule(0.27,0.8,MAT.steel,2.1,-1.3,0.75,g);
-  cyl(0.08,0.08,0.3,MAT.brass,2.1,-0.68,0.75,g);
-  wheel(2.1,-0.45,0.75,0.18,MAT.red,g,"z");
-  box(1.05,0.85,0.22,MAT.teal,-1.15,1.15,-1.05,g);
-  box(0.8,0.5,0.05,MAT.white,-1.15,1.25,-0.92,g);
-  cyl(0.06,0.06,0.08,MAT.red,-1.45,0.82,-0.92,g).rotation.x=Math.PI/2;
-  cyl(0.06,0.06,0.08,MAT.teal,-1.2,0.82,-0.92,g).rotation.x=Math.PI/2;
+  /* خلية PVT: خلية ضغط عالٍ بشبكة زجاجية، مكبس ضغط، مضخة هيدروليكية، مقاييس دقيقة، وحدة تحكم، حمام حراري */
+  box(4.6,0.25,2.4,MAT.darkSteel,0,-1.4,0,g);
+  /* الخلية الرئيسية الزجاجية */
+  cyl(0.55,0.55,2.6,MAT.glass,0,0.3,0,g);
+  tor(0.57,0.04,MAT.steel,0,0.9,0,g).rotation.x=Math.PI/2;
+  tor(0.57,0.04,MAT.steel,0,-0.3,0,g).rotation.x=Math.PI/2;
+  cyl(0.62,0.62,0.35,MAT.steel,0,1.75,0,g);
+  flange(0.72,0.15,MAT.darkSteel,0,1.95,0,g);
+  /* سائل بالخلية ومكبس زئبق */
+  cyl(0.5,0.5,1.0,MAT.amber,0,0.1,0,g);
+  cyl(0.5,0.5,0.5,MAT.teal,0,0.85,0,g);
+  /* مكبس الضغط العلوي */
+  cyl(0.14,0.14,1.2,MAT.chrome,0,2.5,0,g);
+  cyl(0.5,0.5,0.5,MAT.blue,0,3.1,0,g);
+  wheel(0,3.6,0,0.4,MAT.red,g);
+  /* مضخة هيدروليكية جانبية */
+  cyl(0.3,0.3,1.0,MAT.green,1.8,-0.6,0,g).rotation.z=Math.PI/2;
+  box(0.8,0.7,0.8,MAT.blue,2.5,-0.6,0,g);
+  wheel(2.5,0.0,0,0.3,MAT.yellow,g);
+  pipeRun([[1.35,-0.6,0],[1.0,-0.1,0],[0.6,-0.1,0]],0.07,MAT.steel,g);
+  /* وحدة تحكم بمفاتيح وشاشة */
+  box(1.0,1.3,0.4,MAT.white,-2.1,-0.4,0.4,g);
+  box(0.8,0.5,0.05,MAT.glass,-2.1,0.25,0.62,g);
+  for(var kt=0;kt<6;kt++) sph(0.055,MAT.red,-2.4+(kt%2)*0.6,-0.65+Math.floor(kt/2)*0.35,0.62,g);
+  /* مقاييس دقيقة على الخلية */
+  gauge(0.4,1.5,0.5,0.2,g,-0.4);
+  gauge(0.4,0.2,0.5,0.2,g,-0.4);
+  gauge(-0.75,2.4,0.3,0.16,g,-0.35);
+  /* أنابيب منتفخة توصيل */
+  pipeRun([[-1.6,0.3,0.4],[-0.9,0.8,0.4],[-0.6,0.3,0.35]],0.05,MAT.black,g);
+  hazard(-2.1,-1.1,0.5,0.7,g);
 }
 function buildLogging(g){
-  /* سonda تسجيل: رأس كيبل، خرطوشة إلكترونيات، أقسام غاما ومقاومة وكثافة ونيوترون، مركّزات زنبركية */
-  cyl(0.07,0.07,1.7,MAT.darkSteel,0,4.0,0,g);
-  cyl(0.2,0.26,0.55,MAT.brass,0,2.95,0,g);
-  tor(0.24,0.04,MAT.darkSteel,0,2.72,0,g).rotation.x=Math.PI/2;
-  cyl(0.34,0.34,1.05,MAT.steel,0,2.1,0,g);
-  tor(0.35,0.04,MAT.amber,0,2.5,0,g).rotation.x=Math.PI/2;
-  tor(0.35,0.04,MAT.amber,0,1.7,0,g).rotation.x=Math.PI/2;
-  cyl(0.35,0.35,0.95,MAT.white,0,1.05,0,g);
-  cyl(0.36,0.36,0.22,MAT.darkSteel,0,0.5,0,g);
-  cyl(0.36,0.36,1.15,MAT.blue,0,-0.15,0,g);
-  for(var el=0;el<4;el++) tor(0.37,0.045,(el%2? MAT.brass:MAT.black),0,-0.6+el*0.3,0,g).rotation.x=Math.PI/2;
-  addCentralizer(g,0.1);
-  cyl(0.36,0.36,1.05,MAT.teal,0,-1.35,0,g);
-  box(0.16,0.75,0.46,MAT.darkSteel,0.42,-1.35,0,g);
-  beam([0.3,-1.05,0],[0.44,-1.2,0],0.045,MAT.darkSteel,g);
-  beam([0.3,-1.65,0],[0.44,-1.5,0],0.045,MAT.darkSteel,g);
-  sph(0.07,MAT.red,0.52,-1.15,0,g);
-  sph(0.07,MAT.black,0.52,-1.6,0,g);
-  cyl(0.35,0.35,0.9,MAT.steel,0,-2.35,0,g);
-  tor(0.36,0.05,MAT.amber,0,-2.05,0,g).rotation.x=Math.PI/2;
-  tor(0.36,0.05,MAT.amber,0,-2.62,0,g).rotation.x=Math.PI/2;
-  addCentralizer(g,-2.35);
-  var nose=cone(0.34,0.85,MAT.orange,0,-3.2,0,g); nose.rotation.x=Math.PI;
-  sph(0.12,MAT.orange,0,-3.62,0,g);
-  function addCentralizer(gr,cy){
-    for(var k=0;k<3;k++){
-      var bow=mesh(new THREE.TorusGeometry(0.95,0.04,10,24,Math.PI*0.75),MAT.darkSteel,0,cy,0,gr);
-      bow.rotation.y=k*Math.PI*2/3; bow.rotation.x=0; bow.rotation.z=Math.PI/2-0.65;
-      bow.position.set(Math.sin(k*Math.PI*2/3)*0.1,cy,Math.cos(k*Math.PI*2/3)*0.1);
-    }
-    tor(0.37,0.04,MAT.darkSteel,0,cy+0.55,0,gr).rotation.x=Math.PI/2;
-    tor(0.37,0.04,MAT.darkSteel,0,cy-0.55,0,gr).rotation.x=Math.PI/2;
+  /* تسجيل بالسلك: كابينة شاحنة، رافعة سلك بمقياس، بكرة، حزمة أدوات نازلة بجهاز تسجيل ومثبتات */
+  /* الشاحنة */
+  box(4.0,0.5,2.2,MAT.blue,0,-1.35,0,g);
+  for(var w=0;w<3;w++) wheel(-1.5+w*1.5,-1.65,1.05,0.42,MAT.black,g,'x');
+  box(2.2,1.4,2.0,MAT.white,-0.9,-0.4,0,g);
+  box(0.55,0.65,1.8,MAT.glass,-1.9,0.1,0,g);
+  box(2.2,1.6,2.0,MAT.white,1.0,-0.3,0,g);
+  /* بكرة السلك على ظهر الشاحنة */
+  var dr=cyl(0.75,0.75,1.2,MAT.darkSteel,2.0,0.9,0,g); dr.rotation.x=Math.PI/2;
+  for(var sp=0;sp<5;sp++) tor(0.77,0.03,MAT.amber,2.0,0.9,0,g).rotation.x=Math.PI/2;
+  /* رافعة سلك مرتفعة */
+  beam([2.0,1.5,0],[1.2,3.4,0],0.09,MAT.orange,g);
+  beam([1.2,3.4,0],[2.4,4.4,0],0.08,MAT.orange,g);
+  wheel(2.4,4.45,0,0.18,MAT.steel,g);
+  cyl(0.03,0.03,3.0,MAT.steel,2.4,2.9,0,g);
+  /* مقياس التوتر */
+  cyl(0.14,0.14,0.5,MAT.brass,2.0,1.9,0.3,g);
+  gauge(2.0,2.3,0.3,0.18,g,-0.3);
+  /* حزمة الأدوات النازلة ببئر قصير */
+  cyl(1.0,1.0,3.6,MAT.ground,0,-2.2,0,g);
+  tor(1.02,0.04,MAT.black,0,-2.2,0,g).rotation.x=Math.PI/2;
+  cyl(0.14,0.14,1.2,MAT.steel,0,-1.3,0,g);
+  cyl(0.22,0.22,0.5,MAT.orange,0,-2.1,0,g);
+  cyl(0.18,0.18,1.0,MAT.white,0,-2.85,0,g);
+  cyl(0.22,0.22,0.3,MAT.blue,0,-3.5,0,g);
+  for(var ar=0;ar<3;ar++){
+    var a2=ar*Math.PI*2/3;
+    box(0.1,0.7,0.05,MAT.chrome,Math.cos(a2)*0.2,-2.4,Math.sin(a2)*0.2,g).rotation.y=-a2;
   }
+  cone(0.18,0.4,MAT.steel,0,-3.9,0,g).rotation.x=Math.PI;
+  /* كابلات ونظام تأريض */
+  pipeRun([[-1.6,-1.0,1.1],[-1.6,-1.7,1.6],[-0.2,-1.7,1.6]],0.05,MAT.black,g);
+  hazard(-1.0,-1.1,1.15,1.0,g);
 }
-
 function buildTopDrive(g){
-  /* دفع علوي: سكّتا توجيه، عربة، محركان، علبة تروس، IBOP، روابط ورافع، أنبوب حفر */
-  beam([-1.15,-2.7,-0.55],[-1.15,2.9,-0.55],0.11,MAT.darkSteel,g);
-  beam([1.15,-2.7,-0.55],[1.15,2.9,-0.55],0.11,MAT.darkSteel,g);
-  for(var rb=0;rb<6;rb++) beam([-1.15,-2.2+rb*1.0,-0.55],[1.15,-2.2+rb*1.0,-0.55],0.05,MAT.darkSteel,g);
-  box(1.55,0.35,0.7,MAT.darkSteel,0,2.55,-0.35,g);
-  box(1.7,1.15,1.15,MAT.blue,0,1.35,0,g);
-  var m1=cyl(0.42,0.42,0.85,MAT.darkSteel,-0.55,2.15,0,g); var m2=cyl(0.42,0.42,0.85,MAT.darkSteel,0.55,2.15,0,g);
-  for(var fin=0;fin<4;fin++){ tor(0.43,0.035,MAT.black,-0.55,1.9+fin*0.18,0,g).rotation.x=Math.PI/2; tor(0.43,0.035,MAT.black,0.55,1.9+fin*0.18,0,g).rotation.x=Math.PI/2; }
-  box(1.25,0.8,1.0,MAT.amber,0,0.62,0,g);
-  boltRing(0.42,0.05,0.2,MAT.darkSteel,0,0.22,0.52,g,6);
-  cyl(0.3,0.34,0.55,MAT.red,0,0.05,0,g);
-  cyl(0.16,0.16,0.5,MAT.steel,0,-0.45,0,g);
-  cyl(0.34,0.38,0.4,MAT.darkSteel,0,-0.85,0,g);
-  beam([-0.85,0.75,0],[-1.35,-0.55,0],0.09,MAT.steel,g);
-  beam([0.85,0.75,0],[1.35,-0.55,0],0.09,MAT.steel,g);
-  box(0.28,0.75,0.2,MAT.darkSteel,-1.42,-0.95,0,g);
-  box(0.28,0.75,0.2,MAT.darkSteel,1.42,-0.95,0,g);
-  cyl(0.2,0.2,3.0,MAT.steel,0,-2.35,0,g);
-  cyl(0.27,0.27,0.45,MAT.darkSteel,0,-1.55,0,g);
-  pipeRun([[0.9,2.3,0.35],[1.55,1.6,0.6],[1.55,-0.4,0.6]],0.06,MAT.rubber,g);
-  pipeRun([[-0.9,2.3,0.35],[-1.5,1.8,-0.2]],0.07,MAT.red,g);
-  plate(0,1.35,0.6,0.9,0.5,g);
-  hazard(0,2.0,-0.62,1.5,g);
+  /* دفع علوي: جسر تعليق، حلقة سلك، جسم محرك بزعانف تبريد، رأس دفع، أنبوب دوار، فوكك أنابيب جانبي */
+  /* حلقة التعليق والسلك */
+  tor(0.85,0.08,MAT.steel,0,3.2,0,g);
+  for(var cl=0;cl<4;cl++) beam([-0.7+cl*0.47,3.9,0],[-0.7+cl*0.47,3.2,0],0.03,MAT.steel,g);
+  /* الجسم الرئيسي */
+  cyl(0.72,0.72,1.9,MAT.blue,0,1.9,0,g);
+  for(var fin=0;fin<9;fin++){
+    var fa=fin*Math.PI*2/9;
+    box(0.07,1.7,0.22,MAT.darkSteel,Math.cos(fa)*0.74,1.9,Math.sin(fa)*0.74,g).rotation.y=-fa;
+  }
+  /* محرك علوى وفرامل */
+  cyl(0.5,0.5,0.7,MAT.darkSteel,0,3.0,0,g);
+  cyl(0.62,0.62,0.35,MAT.red,0,2.75,0,g);
+  /* صندوق تروس ورأس الدفع */
+  box(1.1,0.8,1.1,MAT.amber,0,0.75,0,g);
+  cyl(0.55,0.55,0.4,MAT.darkSteel,0,0.3,0,g);
+  boltRing(0.42,0.045,0.2,MAT.steel,0,0.35,0,g,10);
+  /* الأنبوب الدوار */
+  cyl(0.22,0.22,2.4,MAT.steel,0,-0.9,0,g);
+  for(var jt=0;jt<2;jt++) tor(0.235,0.03,MAT.darkSteel,0,-0.35-jt*1.0,0,g).rotation.x=Math.PI/2;
+  /* فوكك الأنابيب: ذراعان ومغلاق */
+  for(var sw=0;sw<2;sw++){
+    var dx=sw?1:-1;
+    beam([dx*0.6,1.2,0],[dx*1.7,0.9,0],0.09,MAT.orange,g);
+    var claw=cone(0.3,0.5,MAT.orange,dx*1.75,0.75,0,g);
+    claw.rotation.z=dx*Math.PI*0.75;
+  }
+  cyl(0.9,0.9,0.25,MAT.darkSteel,0,1.05,0,g);
+  /* وحدات تحكم وخراطيم كهربائية */
+  box(0.6,0.9,0.5,MAT.white,0.95,2.2,0,g);
+  pipeRun([[0.5,2.9,0],[0.5,3.6,0.4]],0.06,MAT.black,g);
+  gauge(-0.75,1.0,0.45,0.18,g,-0.3);
+  hazard(0,0.3,0.62,0.55,g);
 }
 function buildShaker(g){
-  /* هزّاز طين: حوض توزيع، سطح غربال مائل بمحركي اهتزاز، إطار وقمع فتات */
-  box(5.6,0.24,2.5,MAT.black,0,-1.55,0,g);
-  box(0.22,1.0,2.0,MAT.darkSteel,-2.2,-1.0,0,g); box(0.22,1.0,2.0,MAT.darkSteel,2.2,-1.0,0,g);
-  box(0.22,1.0,2.0,MAT.darkSteel,-2.2,-1.0,0,g);
-  var deck=new THREE.Group(); deck.position.set(0.25,-0.35,0); deck.rotation.z=-0.14; g.add(deck);
-  box(4.4,0.18,1.9,MAT.darkSteel,0,0,0,deck);
-  for(var ms=0;ms<16;ms++) box(0.06,0.05,1.78,MAT.chrome,-2.0+ms*0.27,0.12,0,deck);
-  for(var ms2=0;ms2<5;ms2++) box(4.25,0.05,0.06,MAT.chrome,0,0.12,-0.8+ms2*0.4,deck);
-  box(4.4,0.42,0.14,MAT.amber,0,0.25,0.98,deck); box(4.4,0.42,0.14,MAT.amber,0,0.25,-0.98,deck);
-  var vm1=cyl(0.3,0.3,0.75,MAT.red,-0.9,0.48,0,deck); vm1.rotation.x=Math.PI/2;
-  var vm2=cyl(0.3,0.3,0.75,MAT.red,0.9,0.48,0,deck); vm2.rotation.x=Math.PI/2;
-  sph(0.17,MAT.black,-0.9,0.48,0.5,deck); sph(0.17,MAT.black,0.9,0.48,-0.5,deck);
-  box(1.15,0.85,1.85,MAT.teal,-2.85,0.15,0,g);
-  cyl(0.19,0.19,1.4,MAT.steel,-2.85,1.05,0,g).rotation.z=0.5;
-  box(0.9,0.7,1.7,MAT.rust,2.95,-1.05,0,g);
-  for(var rk=0;rk<5;rk++) sph(0.13,MAT.rust,2.55+rk*0.2,-0.55, -0.5+ (rk%3)*0.45,g);
-  cyl(0.14,0.14,1.5,MAT.steel,-1.6,-1.05,0.8,g);
-  cyl(0.14,0.14,1.5,MAT.steel,1.8,-1.05,0.8,g);
-  for(var spr=0;spr<3;spr++){ tor(0.17,0.04,MAT.amber,-1.6,-0.85+spr*0.16,0.8,g).rotation.x=Math.PI/2; tor(0.17,0.04,MAT.amber,1.8,-0.85+spr*0.16,0.8,g).rotation.x=Math.PI/2; }
-  plate(-2.85,0.15,0.95,0.7,0.4,g);
-  hazard(0,-0.62,1.28,2.2,g);
+  /* هزّاز طين: صندوق مائل بثلاث طوابق شبكية بنابضات، محرك اهتزاز، قادوس تغذية، مجاري تصريف، قاعدة برباط */
+  box(4.4,0.3,2.4,MAT.darkSteel,0,-1.55,0,g);
+  /* الجسم المائل */
+  var body=box(4.0,0.6,2.2,MAT.orange,0,0.3,0,g);
+  body.rotation.z=0.1;
+  /* ثلاث طوابق شبكية */
+  for(var dk=0;dk<3;dk++){
+    var dy=-0.1+dk*0.62;
+    var deck=box(3.6,0.08,2.0,MAT.blue,-0.2,dy,0,g);
+    deck.rotation.z=0.1;
+    for(var wv=0;wv<14;wv++) box(0.03,0.04,2.0,MAT.steel,-1.9+wv*0.28,dy+0.06,0,g).rotation.z=0.1;
+    tor(0.35,0.03,MAT.amber,-0.2,dy+0.1,0,g).rotation.y=Math.PI/2;
+  }
+  /* قادوس التغذية */
+  cone(0.85,1.0,MAT.green,-2.1,1.1,0,g);
+  cyl(0.3,0.3,0.7,MAT.steel,-2.1,0.35,0,g);
+  pipeRun([[-2.1,-0.1,0],[-1.4,-0.15,0]],0.12,MAT.steel,g);
+  /* محرك اهتزاز ثنائي */
+  cyl(0.28,0.28,1.6,MAT.red,0.6,-0.5,0.75,g).rotation.x=Math.PI/2;
+  cyl(0.28,0.28,1.6,MAT.red,0.6,-0.5,-0.75,g).rotation.x=Math.PI/2;
+  for(var cs=0;cs<2;cs++){
+    var cx2=cs?-0.75:0.75;
+    sph(0.16,MAT.darkSteel,0.6,-0.5,cx2,g);
+  }
+  /* نوابض داعمة */
+  for(var spr=0;spr<4;spr++){
+    var sx=(spr%2?1.4:-1.4), sz=(spr<2?0.8:-0.8);
+    cyl(0.14,0.14,0.9,MAT.amber,sx,-0.95,sz,g);
+  }
+  /* مجاري تصريف (flowline) */
+  pipeRun([[-2.4,-0.3,0.9],[-3.2,-1.1,0.9],[-3.2,-1.4,0.6]],0.13,MAT.steel,g);
+  pipeRun([[-2.4,-0.3,-0.9],[-3.2,-1.1,-0.9]],0.13,MAT.steel,g);
+  box(0.8,0.6,0.8,MAT.blue,-3.6,-1.5,0,g);
+  gauge(0.6,0.1,1.2,0.2,g,-0.3);
+  hazard(2.1,-1.35,1.25,0.8,g);
 }
 function buildCasing(g){
-  /* سلسلة تغليف مقطوعة الطبقات: وصلات، حذاء طفو، طوق، مركّزات زنبركية وقوسية */
-  cyl(0.78,0.78,1.15,MAT.steel,0,2.35,0,g);
-  cyl(0.92,0.92,0.5,MAT.darkSteel,0,1.62,0,g);
-  for(var th=0;th<4;th++) tor(0.93,0.035,MAT.black,0,1.45+th*0.12,0,g).rotation.x=Math.PI/2;
-  cyl(0.78,0.78,1.5,MAT.steel,0,0.6,0,g);
-  cyl(0.94,0.94,0.42,MAT.amber,0,-0.32,0,g);
-  cyl(0.2,0.2,0.24,MAT.red,0,-0.32,0,g);
-  cyl(0.78,0.78,1.35,MAT.steel,0,-1.2,0,g);
-  for(var bw2=0;bw2<4;bw2++){
-    var ba=bw2*Math.PI/2+0.4;
-    var bow2=mesh(new THREE.TorusGeometry(1.02,0.05,10,22,Math.PI*0.8),MAT.red,Math.cos(ba)*0.12,-0.55,Math.sin(ba)*0.12,g);
-    bow2.rotation.set(0,-ba,Math.PI/2-0.55);
+  /* أنابيب تغليف: عمود بئر مقطوع، أعمدة تغليف متدرجة الأقطار بمفاصل، مثبتات، حاشية، رقبة لاصقة */
+  cyl(1.5,1.5,8.0,MAT.ground,0,0,0,g);
+  tor(1.5,0.05,MAT.black,0,3.2,0,g).rotation.x=Math.PI/2;
+  /* أعمدة متدرجة: سطح وسيط وإنتاج */
+  cyl(1.05,1.05,6.5,MAT.darkSteel,0,0.5,0,g);
+  cyl(0.72,0.72,4.5,MAT.steel,0,0.6,0,g);
+  cyl(0.42,0.42,2.8,MAT.amber,0,0.4,0,g);
+  /* مفاصل ملولبة بارزة */
+  for(var jp=0;jp<6;jp++) tor(1.08,0.045,MAT.black,0,-2.4+jp*1.3,0,g).rotation.x=Math.PI/2;
+  for(var jq=0;jq<4;jq++) tor(0.74,0.04,MAT.black,0,-1.2+jq*1.2,0,g).rotation.x=Math.PI/2;
+  for(var jr=0;jr<3;jr++) tor(0.44,0.035,MAT.black,0,-0.6+jr*1.1,0,g).rotation.x=Math.PI/2;
+  /* مثبتات مركزية (centralizers) بجناحات */
+  for(var cz=0;cz<4;cz++){
+    var cy2=-1.6+cz*1.5;
+    tor(0.75,0.05,MAT.blue,0,cy2,0,g).rotation.x=Math.PI/2;
+    for(var fn=0;fn<6;fn++){
+      var fa=fn*Math.PI/3;
+      var fin=box(0.04,0.5,0.24,MAT.blue,Math.cos(fa)*0.85,cy2,Math.sin(fa)*0.85,g);
+      fin.rotation.y=-fa;
+    }
   }
-  for(var slat=0;slat<6;slat++){ var sa=slat*Math.PI/3; box(0.1,0.55,0.22,MAT.darkSteel,Math.cos(sa)*0.86,-1.85,Math.sin(sa)*0.86,g).rotation.y=-sa; }
-  cone(0.78,0.75,MAT.darkSteel,0,-2.3,0,g).rotation.x=Math.PI;
-  cyl(0.18,0.18,0.3,MAT.red,0,-2.05,0,g);
-  /* مقطع جانبي: طبقات بئر بأقطار متناقصة */
-  var sx=2.45;
-  cyl(0.62,0.62,1.0,MAT.darkSteel,sx,2.3,0,g); cyl(0.48,0.48,1.5,MAT.steel,sx,1.05,0,g); cyl(0.34,0.34,1.9,MAT.steel,sx,-0.75,0,g); cyl(0.22,0.22,1.4,MAT.amber,sx,-2.35,0,g);
-  box(1.7,0.14,1.05,MAT.rust,sx,-3.15,0,g);
-  plate(0,0.6,0.8,0.8,0.42,g);
+  /* حاشية قاعية */
+  cyl(0.78,0.78,0.7,MAT.rubber,0,-2.2,0,g);
+  cone(0.5,0.5,MAT.darkSteel,0,-2.75,0,g).rotation.x=Math.PI;
+  /* رقبة سطحية بشفة ومقاييس */
+  flange(1.25,0.2,MAT.steel,0,3.6,0,g);
+  boltRing(1.1,0.05,0.24,MAT.steel,0,3.65,0,g,12);
+  cyl(0.3,0.3,0.5,MAT.green,0,3.9,0,g);
+  wheel(0,4.3,0,0.3,MAT.red,g);
+  gauge(0.85,4.0,0.3,0.2,g,-0.3);
+  hazard(0,3.45,0.9,0.8,g);
 }
 function buildPacker(g){
   /* حاشية: تغليف مقطوع حولها، ماندريل، عناصر مطاطية، انزلاقات مخروطية */
@@ -1069,67 +1120,89 @@ function buildPacker(g){
   plate(1.95,0.86,0,0.75,0.4,g);
 }
 function buildCoiled(g){
-  /* وحدة أنابيب ملفوفة: شاحنة، بكرة ضخمة، ذراع رقبة، رأس حقن، كابينة */
-  box(6.8,0.3,2.4,MAT.black,0,-2.05,0,g);
-  for(var wh=0;wh<3;wh++){ var w1=cyl(0.52,0.52,0.24,MAT.black,-2.2+wh*2.0,-2.35,1.15,g); w1.rotation.x=Math.PI/2; var w2=cyl(0.52,0.52,0.24,MAT.black,-2.2+wh*2.0,-2.35,-1.15,g); w2.rotation.x=Math.PI/2; cyl(0.2,0.2,0.27,MAT.steel,-2.2+wh*2.0,-2.35,1.15,g).rotation.x=Math.PI/2; }
-  box(6.6,0.5,2.1,MAT.darkSteel,0,-1.72,0,g);
-  var reel=new THREE.Group(); reel.position.set(-1.55,0.15,0); g.add(reel);
-  var drum=cyl(0.85,0.85,1.55,MAT.darkSteel,0,0,0,reel); drum.rotation.x=Math.PI/2;
-  for(var wrap=0;wrap<5;wrap++) tor(1.02,0.09,MAT.orange,0,0,-0.62+wrap*0.31,reel);
-  var f1=cyl(1.28,1.28,0.14,MAT.blue,0,0,0.86,reel); f1.rotation.x=Math.PI/2;
-  var f2=cyl(1.28,1.28,0.14,MAT.blue,0,0,-0.86,reel); f2.rotation.x=Math.PI/2;
-  for(var sp=0;sp<6;sp++) box(0.14,2.3,0.1,MAT.darkSteel,Math.cos(sp*1.047)*0.0,0,0.86,reel).rotation.z=sp*1.047;
-  cyl(0.22,0.22,2.0,MAT.steel,-1.55,0.15,0,g).rotation.x=Math.PI/2;
-  box(0.35,1.9,0.35,MAT.darkSteel,-2.85,-0.75,0.95,g); box(0.35,1.9,0.35,MAT.darkSteel,-0.25,-0.75,0.95,g);
-  box(0.35,1.9,0.35,MAT.darkSteel,-2.85,-0.75,-0.95,g); box(0.35,1.9,0.35,MAT.darkSteel,-0.25,-0.75,-0.95,g);
-  /* رقبة منحنية + رأس حقن */
-  var gn=mesh(new THREE.TorusGeometry(1.05,0.09,12,24,Math.PI/2),MAT.orange,1.55,1.35,0,g); gn.rotation.z=Math.PI;
-  box(0.62,1.35,0.72,MAT.red,2.62,0.35,0,g);
-  box(0.72,0.3,0.82,MAT.darkSteel,2.62,1.12,0,g);
-  for(var ch=0;ch<3;ch++) box(0.66,0.18,0.76,MAT.black,2.62,0.05+ch*0.32,0,g);
-  cyl(0.09,0.09,1.15,MAT.orange,2.62,-0.85,0,g);
-  box(0.85,0.6,0.9,MAT.darkSteel,2.62,-1.55,0,g);
-  box(1.5,1.35,1.9,MAT.white,1.15,-0.85,-0.0,g);
-  box(1.3,0.55,0.06,MAT.glass,1.15,-0.45,0.97,g);
-  box(1.55,0.18,1.95,MAT.amber,1.15,-0.1,0,g);
-  box(1.3,1.0,1.6,MAT.blue,3.15,-1.15,0,g);
-  hazard(2.62,-1.95,1.22,1.1,g);
-  plate(1.15,-1.05,0.98,0.8,0.42,g);
+  /* وحدة أنابيب ملفوفة: بكرة عملاقة بالملف، مكبس حقن (injector) برافعات، قوس قيادة، كابينة تحكم، خط نازل */
+  /* بكرة الملف العملاقة */
+  cyl(1.6,1.6,0.4,MAT.darkSteel,-1.9,0.6,0,g).rotation.x=Math.PI/2;
+  cyl(1.0,1.0,0.5,MAT.darkSteel,-1.9,0.6,0,g).rotation.x=Math.PI/2;
+  cyl(0.4,0.4,0.7,MAT.steel,-1.9,0.6,0,g).rotation.x=Math.PI/2;
+  for(var sp2=0;sp2<5;sp2++) tor(1.3-sp2*0.06,0.09,MAT.amber,-1.9,0.6,0,g).rotation.y=Math.PI/2;
+  /* أنبوب يخرج من الملف */
+  pipeRun([[-1.9,2.2,0.15],[-1.0,2.5,0.15],[-0.2,2.4,0.15]],0.09,MAT.amber,g);
+  /* مكبس الحقن: قوس برافعات معشوقة */
+  box(0.9,2.2,0.7,MAT.orange,0.5,0.9,0.15,g);
+  for(var cg=0;cg<3;cg++){
+    var cy3=-0.2+cg*0.75;
+    cyl(0.16,0.16,0.5,MAT.chrome,0.5,cy3,0.62,g).rotation.x=Math.PI/2;
+    box(0.1,0.7,0.1,MAT.chrome,0.1+cg*0.4,cy3+0.2,0.62,g);
+  }
+  /* القوس الداير فوق المكبس */
+  tor(1.0,0.12,MAT.orange,0.5,1.6,0.15,g);
+  /* خط الأنبوب النازل من المكبس */
+  pipeRun([[0.5,0.0,0.15],[0.5,-1.6,0.15],[1.4,-1.6,0.15],[1.4,-2.8,0.15]],0.09,MAT.amber,g);
+  cyl(1.0,1.0,3.0,MAT.ground,1.4,-3.9,0.15,g);
+  tor(1.0,0.04,MAT.black,1.4,-3.4,0.15,g).rotation.x=Math.PI/2;
+  /* كابينة تحكم */
+  box(1.6,1.4,1.2,MAT.white,2.6,0.4,-0.3,g);
+  box(1.1,0.6,0.06,MAT.glass,2.6,0.7,0.35,g);
+  cyl(0.04,0.04,1.0,MAT.chrome,2.6,1.9,-0.3,g);
+  sph(0.1,MAT.red,2.6,2.4,-0.3,g);
+  /* قاعدة */
+  box(6.2,0.3,2.6,MAT.darkSteel,0.4,-1.95,0,g);
+  for(var wb=0;wb<3;wb++) wheel(-1.2+wb*2.0,-2.25,1.3,0.35,MAT.black,g,'x');
+  gauge(1.4,1.9,0.5,0.18,g,-0.3);
+  hazard(-0.6,-1.75,1.35,1.0,g);
 }
 function buildPerf(g){
-  /* مسدّس تثقيب: جسم مثقّب، شحنات مشكّلة ظاهرة بمقطع، سلك تفجير، رأس إطلاق، أنفاق اختراق */
-  cyl(0.07,0.07,1.3,MAT.darkSteel,0,3.55,0,g);
-  cyl(0.24,0.28,0.5,MAT.brass,0,2.7,0,g);
-  cyl(0.34,0.34,0.65,MAT.red,0,2.15,0,g);
-  tor(0.35,0.04,MAT.black,0,1.85,0,g).rotation.x=Math.PI/2;
-  cyl(0.36,0.36,3.6,MAT.steel,0,-0.15,0,g);
-  for(var chg=0;chg<6;chg++){
-    var yy=1.35-chg*0.58, aa=chg*1.05;
-    var port=cyl(0.13,0.13,0.1,MAT.black,Math.cos(aa)*0.36,yy,Math.sin(aa)*0.36,g); port.rotation.z=Math.PI/2; port.rotation.y=-aa;
-    cone(0.11,0.2,MAT.brass,Math.cos(aa)*0.3,yy,Math.sin(aa)*0.3,g).rotation.z=Math.cos(aa)*1.2;
-    /* نفث اختراق + نفق بالتغليف */
-    cone(0.05,0.85,MAT.amber,Math.cos(aa)*0.85,yy,Math.sin(aa)*0.85,g).rotation.z=Math.PI/2*Math.cos(aa); 
-    var tunnel=cyl(0.07,0.07,0.5,MAT.black,Math.cos(aa)*1.15,yy,Math.sin(aa)*1.15,g); tunnel.rotation.z=Math.PI/2; tunnel.rotation.y=-aa;
+  /* مسدس تثقيب: غلاف بئر، جسم مسدس بفتحات، عيارات موجّهة، رأس إطلاق كهربائي، مركّبات مخروطية */
+  cyl(1.2,1.2,5.0,MAT.ground,0,0.6,0,g);
+  tor(1.22,0.04,MAT.black,0,2.6,0,g).rotation.x=Math.PI/2;
+  /* جسم المسدس داخل الغلاف */
+  cyl(0.34,0.34,3.4,MAT.orange,0,-0.6,0,g);
+  cyl(0.4,0.4,0.3,MAT.darkSteel,0,1.2,0,g);
+  /* رأس إطلاق كهربائي */
+  cyl(0.3,0.3,0.7,MAT.white,0,1.55,0,g);
+  box(0.45,0.3,0.45,MAT.darkSteel,0,1.95,0,g);
+  cyl(0.05,0.05,0.7,MAT.red,0.35,2.0,0,g);
+  sph(0.08,MAT.amber,0.35,2.4,0,g);
+  /* عيارات مخروطية بأربع صفوف */
+  for(var pf=0;pf<12;pf++){
+    var py=pf*0.26-1.1;
+    var ang=(pf%2)*0.5;
+    for(var pn=0;pn<2;pn++){
+      var pa=pn*Math.PI+ang;
+      var jet=cone(0.09,0.22,MAT.chrome,Math.cos(pa)*0.36,py,Math.sin(pa)*0.36,g);
+      jet.rotation.set(Math.sin(pa)*1.4,0,-Math.cos(pa)*1.4);
+    }
+    tor(0.36,0.02,MAT.black,0,py,0,g).rotation.x=Math.PI/2;
   }
-  beam([0.14,1.7,0.14],[0.14,-1.75,0.14],0.035,MAT.red,g);
-  cyl(0.36,0.36,0.35,MAT.darkSteel,0,-2.1,0,g);
-  cone(0.3,0.5,MAT.darkSteel,0,-2.5,0,g).rotation.x=Math.PI;
-  /* جدار تغليف + إسمنت + صخر حول المسدّس */
-  var rock=box(0.55,4.6,2.4,MAT.rust,1.75,0,0,g);
-  box(0.18,4.6,2.4,MAT.white,1.38,0,0,g);
-  box(0.14,4.6,2.4,MAT.darkSteel,1.18,0,0,g);
-  var rock2=box(0.55,4.6,2.4,MAT.rust,-1.75,0,0,g);
-  box(0.18,4.6,2.4,MAT.white,-1.38,0,0,g);
-  box(0.14,4.6,2.4,MAT.darkSteel,-1.18,0,0,g);
-  plate(0,-1.15,0.38,0.62,0.34,g);
+  /* بصمة ثقوب على الغلاف */
+  for(var hl=0;hl<10;hl++){
+    var hy=hl*0.3-0.9;
+    for(var hc=0;hc<2;hc++){
+      var ha=hc*Math.PI+(hl%2)*0.35;
+      sph(0.05,MAT.black,Math.cos(ha)*1.21,hy,Math.sin(ha)*1.21,g);
+    }
+  }
+  /* مثبتات تمركز أعلى وأسفل */
+  for(var cpx=0;cpx<2;cpx++){
+    var cy4=cpx?0.9:-2.0;
+    tor(0.37,0.04,MAT.blue,0,cy4,0,g).rotation.x=Math.PI/2;
+    for(var fb=0;fb<4;fb++){
+      var fba=fb*Math.PI/2;
+      box(0.05,0.35,0.18,MAT.blue,Math.cos(fba)*0.42,cy4,Math.sin(fba)*0.42,g).rotation.y=-fba;
+    }
+  }
+  gauge(0.9,1.7,0.4,0.15,g,-0.3);
+  hazard(0,1.35,0.6,0.45,g);
 }
 function buildCore(g){
-  /* جهاز لباب: رأس حلقي، أسطوانتان، ماسك، وعمود لباب مقطّع بجانبه مع شرائح قياس */
+  /* جهاز لباب: رأس حلقي بأسنان، أسطوانتان بخطوط وصل، ماسك، عمود لباب مقطّع بجانبه، فرجار قياس رقمي */
   cyl(0.52,0.52,0.55,MAT.darkSteel,0,2.9,0,g);
   for(var tt=0;tt<5;tt++) tor(0.53,0.035,MAT.black,0,2.68+tt*0.11,0,g).rotation.x=Math.PI/2;
   cyl(0.58,0.58,2.4,MAT.steel,0,1.45,0,g);
   tor(0.59,0.04,MAT.amber,0,0.35,0,g).rotation.x=Math.PI/2;
   cyl(0.46,0.46,2.3,MAT.white,0,1.45,0,g);
+  for(var sl=0;sl<4;sl++) tor(0.465,0.015,MAT.black,0,0.6+sl*0.6,0,g).rotation.x=Math.PI/2;
   cyl(0.6,0.66,0.6,MAT.darkSteel,0,-0.05,0,g);
   for(var ct=0;ct<10;ct++){ var ca=ct*Math.PI/5; sph(0.075,MAT.brass,Math.cos(ca)*0.6,-0.22,Math.sin(ca)*0.6,g); }
   for(var fl=0;fl<6;fl++){ var fa=fl*Math.PI/3; box(0.12,0.35,0.2,MAT.red,Math.cos(fa)*0.52,-0.5,Math.sin(fa)*0.52,g).rotation.y=-fa; }
@@ -1143,14 +1216,20 @@ function buildCore(g){
   box(0.9,0.14,0.9,MAT.darkSteel,cx,-1.45,0,g);
   box(0.72,0.5,0.72,MAT.white,cx,-2.05,0,g);
   box(0.5,0.28,0.5,MAT.rust,cx,-1.95,0,g);
-  /* فرجار قياس */
-  beam([cx-0.7,2.35,0.5],[cx-0.15,1.95,0.5],0.035,MAT.chrome,g);
-  beam([cx+0.7,2.35,0.5],[cx+0.15,1.95,0.5],0.035,MAT.chrome,g);
-  gauge(cx,2.42,0.5,0.17,g,-0.3);
-  plate(0,1.45,0.6,0.75,0.4,g);
-  hazard(cx,-1.38,0.46,0.8,g);
+  /* فرجار قياس رقمي بجانب القاعدة */
+  var calx=-1.8;
+  box(0.06,2.2,0.24,MAT.chrome,calx,-1.6,0.4,g);
+  box(0.1,0.3,0.3,MAT.amber,calx,-0.7,0.4,g);
+  box(0.12,0.2,0.3,MAT.darkSteel,calx,-2.5,0.4,g);
+  box(0.04,1.4,0.1,MAT.black,calx+0.08,-1.9,0.42,g);
+  /* مثبت تمركز سفلي بجناحات */
+  tor(0.65,0.05,MAT.blue,0,-1.15,0,g).rotation.x=Math.PI/2;
+  for(var fw=0;fw<6;fw++){
+    var fwa=fw*Math.PI/3;
+    box(0.05,0.45,0.22,MAT.blue,Math.cos(fwa)*0.72,-1.15,Math.sin(fwa)*0.72,g).rotation.y=-fwa;
+  }
+  hazard(0,-0.95,0.62,0.55,g);
 }
-
 var BUILDERS = { rig:buildRig, bit:buildBit, bop:buildBop, mudpump:buildMudPump, tree:buildTree, separator:buildSeparator, esp:buildESP, pvt:buildPVT, logging:buildLogging, topdrive:buildTopDrive, shaker:buildShaker, casing:buildCasing, packer:buildPacker, coiled:buildCoiled, perf:buildPerf, core:buildCore };
 var SCALES = { rig:0.75, bit:1.15, bop:1.15, mudpump:1.05, tree:1.15, separator:0.95, esp:0.8, pvt:0.95, logging:0.8, topdrive:0.85, shaker:0.95, casing:0.95, packer:0.95, coiled:0.82, perf:0.85, core:0.95 };
 
@@ -1383,14 +1462,14 @@ function initThree(){
   camera=new THREE.PerspectiveCamera(42, iw/ih, 0.1, 100);
   camera.position.set(0,2.2,camZ); camera.lookAt(0,0.4,0);
   renderer=new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:"high-performance"});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2.5));
-  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,3));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.VSMShadowMap; renderer.shadowMap.autoUpdate=true;
   renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12;
   renderer.setSize(iw, ih);
   stageEl.appendChild(renderer.domElement);
   scene.add(new THREE.AmbientLight(0xffffff,0.62));
   scene.add(new THREE.HemisphereLight(0xfff4e0,0x2a2015,0.5));
-  var key=new THREE.DirectionalLight(0xfff2d8,1.25); key.position.set(6,9,7); key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=7; key.shadow.camera.bottom=-5; key.shadow.bias=-0.0003; key.shadow.radius=4; scene.add(key);
+  var key=new THREE.DirectionalLight(0xfff2d8,1.25); key.position.set(6,9,7); key.castShadow=true; key.shadow.mapSize.set(4096,4096); key.shadow.bias=-0.0002; key.shadow.radius=6; key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=7; key.shadow.camera.bottom=-5; key.shadow.bias=-0.0003; key.shadow.radius=4; scene.add(key);
   var fill=new THREE.DirectionalLight(0x9fd0ff,0.45); fill.position.set(-7,4,-6); scene.add(fill);
   var rim=new THREE.PointLight(0xf2a81d,0.7,30); rim.position.set(0,-3,6); scene.add(rim);
   var disc=new THREE.Mesh(new THREE.CylinderGeometry(3.6,3.9,0.16,48), MAT.ground); disc.position.y=-3.05; disc.receiveShadow=true; scene.add(disc);
