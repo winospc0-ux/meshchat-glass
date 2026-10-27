@@ -584,7 +584,10 @@ var TOOLS = [
 
 /* ================= 3D HELPERS ================= */
 function mat(color, metal, rough, extra){
-  var m = new THREE.MeshStandardMaterial({ color:color, metalness:(metal==null?0.55:metal), roughness:(rough==null?0.4:rough) });
+  var m = new THREE.MeshPhysicalMaterial({ color:color, metalness:(metal==null?0.55:metal), roughness:(rough==null?0.4:rough),
+    clearcoat:0.0, clearcoatRoughness:0.25, envMapIntensity:1.15 });
+  if(metal>0.7){ m.clearcoat=0.35; m.clearcoatRoughness=0.12; }        // polished metal sheen
+  else if(metal<0.4){ m.clearcoat=0.55; m.clearcoatRoughness=0.3; }    // painted surface gloss
   if(extra){ for(var k in extra) m[k]=extra[k]; }
   return m;
 }
@@ -2126,14 +2129,47 @@ function initThree(){
   renderer=new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:"high-performance"});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,3));
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.VSMShadowMap; renderer.shadowMap.autoUpdate=true;
-  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.12;
+  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
   renderer.setSize(iw, ih);
   stageEl.appendChild(renderer.domElement);
-  scene.add(new THREE.AmbientLight(0xffffff,0.62));
-  scene.add(new THREE.HemisphereLight(0xfff4e0,0x2a2015,0.5));
-  var key=new THREE.DirectionalLight(0xfff2d8,1.25); key.position.set(6,9,7); key.castShadow=true; key.shadow.mapSize.set(4096,4096); key.shadow.bias=-0.0002; key.shadow.radius=6; key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=7; key.shadow.camera.bottom=-5; key.shadow.bias=-0.0003; key.shadow.radius=4; scene.add(key);
+  // ---- Realistic PBR environment: procedural studio HDRI (PMREM) ----
+  (function(){
+    var envScene = new THREE.Scene();
+    // gradient sky room
+    var roomGeo = new THREE.BoxGeometry(20,20,20);
+    var roomMat = new THREE.MeshBasicMaterial({side:THREE.BackSide});
+    var cv = document.createElement('canvas'); cv.width=64; cv.height=256;
+    var cx = cv.getContext('2d');
+    var gr = cx.createLinearGradient(0,0,0,256);
+    gr.addColorStop(0,'#dfe8f2'); gr.addColorStop(0.45,'#8fa3b8'); gr.addColorStop(0.5,'#4b565f'); gr.addColorStop(1,'#232a30');
+    cx.fillStyle=gr; cx.fillRect(0,0,64,256);
+    roomMat.map = new THREE.CanvasTexture(cv); roomMat.map.encoding = THREE.sRGBEncoding;
+    envScene.add(new THREE.Mesh(roomGeo, roomMat));
+    // bright softbox panels (studio reflections)
+    function panel(w,h,x,y,z,ry,inten){
+      var pm = new THREE.MeshBasicMaterial({color:new THREE.Color(inten,inten,inten)});
+      var p = new THREE.Mesh(new THREE.PlaneGeometry(w,h), pm);
+      p.position.set(x,y,z); p.rotation.y=ry||0; p.lookAt(0,0,0); envScene.add(p);
+    }
+    panel(8,4, 0,9,0, 0, 6.0);      // top softbox
+    panel(6,3, 7,3,4, 0, 3.0);      // key side
+    panel(5,2.5,-7,2,-4, 0, 1.2);   // fill side
+    panel(4,2, 0,1,-9, 0, 0.8);     // back
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    var envRT = pmrem.fromScene(envScene, 0.04);
+    scene.environment = envRT.texture;
+    pmrem.dispose();
+  })();
+  scene.add(new THREE.AmbientLight(0xffffff,0.18));
+  scene.add(new THREE.HemisphereLight(0xfff4e0,0x2a2015,0.22));
+  var key=new THREE.DirectionalLight(0xfff2d8,1.6); key.position.set(6,9,7); key.castShadow=true; key.shadow.mapSize.set(4096,4096); key.shadow.bias=-0.0002; key.shadow.radius=6; key.shadow.camera.left=-6; key.shadow.camera.right=6; key.shadow.camera.top=7; key.shadow.camera.bottom=-5; key.shadow.bias=-0.0003; key.shadow.radius=4; scene.add(key);
   var fill=new THREE.DirectionalLight(0x9fd0ff,0.45); fill.position.set(-7,4,-6); scene.add(fill);
   var rim=new THREE.PointLight(0xf2a81d,0.7,30); rim.position.set(0,-3,6); scene.add(rim);
+  (function(){ var gc=document.createElement('canvas'); gc.width=gc.height=256; var g=gc.getContext('2d');
+  g.fillStyle='#39434b'; g.fillRect(0,0,256,256);
+  for(var gi=0;gi<2600;gi++){ g.fillStyle='rgba('+(40+Math.random()*50|0)+','+(45+Math.random()*50|0)+','+(50+Math.random()*55|0)+',0.25)'; g.fillRect(Math.random()*256,Math.random()*256,2,2); }
+  var gt=new THREE.CanvasTexture(gc); gt.wrapS=gt.wrapT=THREE.RepeatWrapping; gt.repeat.set(4,4);
+  var gmm=new THREE.MeshStandardMaterial({map:gt,roughness:0.92,metalness:0.15}); MAT.ground=gmm; })();
   var disc=new THREE.Mesh(new THREE.CylinderGeometry(3.6,3.9,0.16,48), MAT.ground); disc.position.y=-3.05; disc.receiveShadow=true; scene.add(disc);
   var ring=new THREE.Mesh(new THREE.TorusGeometry(3.6,0.035,10,64), MAT.amber); ring.rotation.x=Math.PI/2; ring.position.y=-2.96; scene.add(ring);
   var grid=new THREE.PolarGridHelper(3.6,8,4,48,0x5a6d78,0x3c4a53); grid.position.y=-2.95; scene.add(grid);
