@@ -1954,6 +1954,9 @@ function initThree(){
   var iw=stageEl.clientWidth||860, ih=stageEl.clientHeight||440;
   camera=new THREE.PerspectiveCamera(42, iw/ih, 0.1, 100);
   camera.position.set(0,2.2,camZ); camera.lookAt(0,0.4,0);
+  var testCtx=null;
+  try{ testCtx=document.createElement("canvas").getContext("webgl")||document.createElement("canvas").getContext("experimental-webgl"); }catch(e){}
+  if(!testCtx){ document.getElementById("fallback").innerHTML="جهازك ما يدعم WebGL — جرّب متصفح كروم محدّث، أو افتح الرابط من جهاز ثاني."; document.getElementById("fallback").style.display="block"; return false; }
   renderer=new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:"high-performance"});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.VSMShadowMap; renderer.shadowMap.autoUpdate=true;
