@@ -248,6 +248,10 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 30px;colo
 .detail-overlay:fullscreen{background:var(--bg);overflow-y:auto}
 .btn-fs-view{background:var(--amber);border-color:var(--amber);color:#231a04}
 .btn-fs-view:hover{color:#231a04;border-color:var(--amber);opacity:.92}
+
+.real-btn{ margin-inline-start:auto; font:inherit; font-size:12px; padding:6px 12px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:inherit; cursor:pointer; backdrop-filter:blur(8px); }
+.real-btn.on{ background:var(--acc,#f2a81d); color:#1b1f23; border-color:transparent; font-weight:700; }
 </style>
 </head>
 <body>
@@ -288,7 +292,8 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 30px;colo
     <div class="stage-grid">
       <div class="viewer-card">
         <div class="viewer-head">
-          <div class="now"><span id="nowName">منصّة الحفر</span><small id="nowEn">DRILLING RIG</small></div>
+          <div class="now"><span id="nowName">منصّة الحفر</span><small id="nowEn">DRILLING RIG</small>
+            <button id="realBtn" class="real-btn" onclick="toggleReal()">⬅ نموذج حقيقي</button></div>
           
         </div>
         <div id="stage" role="application" aria-label="منطقة تدوير المجسم ثلاثي الأبعاد — اسحب للتدوير">
@@ -311,6 +316,7 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 30px;colo
   </div>
 </div>
 
+<script src="GLTFLoader.js"></script>
 <script>
 /* ================= DATA ================= */
 var CATS = { drilling:"الحفر", production:"الإنتاج", lab:"المكامن والمختبر", logging:"القياس والتسجيل" };
@@ -1289,6 +1295,12 @@ function buildCore(g){
   hazard(0,-0.95,0.62,0.55,g);
 }
 var BUILDERS = { travelingblock:buildTravelBlock, rig:buildRig, bit:buildBit, bop:buildBop, mudpump:buildMudPump, tree:buildTree, separator:buildSeparator, esp:buildESP, pvt:buildPVT, logging:buildLogging, topdrive:buildTopDrive, shaker:buildShaker, casing:buildCasing, packer:buildPacker, coiled:buildCoiled, perf:buildPerf, core:buildCore, drawworks:buildDrawworks, swivel:buildSwivel, mudtank:buildMudTank, annular:buildAnnular, crownblock:buildCrownBlock, mudhopper:buildMudHopper, degasser:buildDegasser, desilter:buildDesilter, accumulator:buildAccumulator, wellhead:buildWellhead, flowline:buildFlowline, piglauncher:buildPigLauncher, suckerrod:buildSuckerRod, pumpjack:buildPumpjack, tubinghead:buildTubingHead, aircooler:buildAirCooler, scrubber:buildScrubber, gravel:buildGravel, logunit:buildLogUnit, gamma:buildGamma, mwd:buildMWD, corelab:buildCoreLab, viscometer:buildViscometer, retort:buildRetort, filterpress:buildFilterPress, chemkit:buildChemKit };
+var REAL_MODELS = { flowline:'zHomTZzv6S', piglauncher:'XQXKJ1whMH', christmasvalve:'hl3aNpQZQw',
+  mudtank:'GB6AFkoiZb', desilter:'sHdMpk2YD4', cementing:'03iCPYXZpJ', injector:'CpCnSuo786',
+  tank:'TLsXd9efLC', compressor:'MraIiFnpAY', wellhead:'XVB8vUbnZb', tubinghead:'Dc4k4CooN3',
+  esp:'xkgtgFIHIJ', aircooler:'zvwMPbf7tN', degasser:'amFuyE3IF6', separator:'K58RQ63qR5',
+  gravel:'h5RUr3vlcS', mudhopper:'vzzCNUB6Zn', flowline2:'c6E9QTukqK', storage:'fkTsDdpQAA' };
+
 var SCALES = { rig:0.75, bit:1.15, bop:1.15, mudpump:1.05, tree:1.15, separator:0.95, esp:0.8, pvt:0.95, logging:0.8, topdrive:0.85, shaker:0.95, casing:0.95, packer:0.95, coiled:0.82, perf:0.85, core:0.95 };
 
 function buildWingValve(g){
@@ -2177,10 +2189,12 @@ function initThree(){
   animate();
   return true;
 }
+var realMode=false, realCache={};
 function loadModel(id){
   currentId=id;
   if(modelGroup){ scene.remove(modelGroup); }
   modelGroup=new THREE.Group(); current=modelGroup;
+  if(realMode && REAL_MODELS[id]){ loadRealModel(id); return; }
   BUILDERS[id](modelGroup);
   modelGroup.traverse(function(o){ if(o.isMesh && !(o.material&&o.material.transparent)){ o.castShadow=true; } });
   var s=SCALES[id]||1; modelGroup.scale.set(s,s,s);
@@ -2191,7 +2205,46 @@ function loadModel(id){
   document.getElementById("nowName").textContent=t.name;
   document.getElementById("nowEn").textContent=t.en;
   renderInfo(t);
+  updateRealBtn();
   document.querySelectorAll(".tool-card").forEach(function(c){ c.classList.toggle("selected", c.dataset.id===id); });
+}
+function loadRealModel(id){
+  var gid = REAL_MODELS[id];
+  var url = "models/" + gid + ".glb";
+  document.getElementById("nowName").textContent = toolById(id).name + " — تحميل…";
+  var finish = function(g){
+    if(!realCache[gid]) realCache[gid]=g;
+    if(currentId!==id) return;                       // user moved on
+    var clone = realCache[gid].clone(true);
+    modelGroup.add(clone);
+    // auto-fit: normalize bounding box to radius ~2
+    var bb=new THREE.Box3().setFromObject(modelGroup);
+    var size=bb.getSize(new THREE.Vector3()), c=bb.getCenter(new THREE.Vector3());
+    var mx=Math.max(size.x,size.y,size.z)||1;
+    var sc=3.4/mx;
+    modelGroup.scale.set(sc,sc,sc);
+    modelGroup.position.set(-c.x*sc, -c.y*sc + (bb.max.y-bb.min.y)*0 + 0.4, -c.z*sc);
+    clone.traverse(function(o){ if(o.isMesh){ o.castShadow=true; if(o.material) o.material.envMapIntensity=1.2; } });
+    var t=toolById(id);
+    document.getElementById("nowName").textContent=t.name + " — نموذج حقيقي";
+    document.getElementById("nowEn").textContent=t.en;
+    renderInfo(t);
+  };
+  if(realCache[gid]){ finish(realCache[gid]); return; }
+  new THREE.GLTFLoader().load(url, function(gltf){ finish(gltf.scene); }, undefined, function(err){
+    console.warn("real model failed", err);
+    realMode=false; updateRealBtn();
+    BUILDERS[id](modelGroup);
+  });
+}
+function toggleReal(){ if(!REAL_MODELS[currentId]) return; realMode=!realMode; updateRealBtn(); loadModel(currentId); }
+function updateRealBtn(){
+  var b=document.getElementById("realBtn");
+  if(!b) return;
+  var on = realMode && REAL_MODELS[currentId];
+  b.style.display = REAL_MODELS[currentId] ? "" : "none";
+  b.textContent = on ? "⬅ مجسّم مولّد" : "⬅ نموذج حقيقي";
+  b.classList.toggle("on", !!on);
 }
 function applyWire(g,on){ g.traverse(function(o){ if(o.isMesh){ o.material=o.material.clone(); o.material.wireframe=on; } }); }
 function animate(){
