@@ -1954,10 +1954,19 @@ function initThree(){
   var iw=stageEl.clientWidth||860, ih=stageEl.clientHeight||440;
   camera=new THREE.PerspectiveCamera(42, iw/ih, 0.1, 100);
   camera.position.set(0,2.2,camZ); camera.lookAt(0,0.4,0);
-  var testCtx=null;
-  try{ testCtx=document.createElement("canvas").getContext("webgl")||document.createElement("canvas").getContext("experimental-webgl"); }catch(e){}
-  if(!testCtx){ document.getElementById("fallback").innerHTML="جهازك ما يدعم WebGL — جرّب متصفح كروم محدّث، أو افتح الرابط من جهاز ثاني."; document.getElementById("fallback").style.display="block"; return false; }
-  renderer=new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:"high-performance"});
+  function tryCtx(opts){
+    var c=document.createElement("canvas");
+    try{ return c.getContext("webgl2",opts)||c.getContext("webgl",opts)||c.getContext("experimental-webgl",opts); }catch(e){ return null; }
+  }
+  var testCtx=tryCtx({antialias:true})||tryCtx({antialias:false,failIfMajorPerformanceCaveat:false});
+  if(!testCtx){
+    document.getElementById("fallback").innerHTML="جهازك ما يدعم WebGL.<br>جرّب: افتح الرابط بكروم محدّث — أو من جهاز ثاني.";
+    document.getElementById("fallback").style.display="block"; return false;
+  }
+  try{ renderer=new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:"high-performance"}); }
+  catch(re){ try{ renderer=new THREE.WebGLRenderer({antialias:false, alpha:true, failIfMajorPerformanceCaveat:false}); }catch(re2){
+    document.getElementById("fallback").innerHTML="تعذّر تشغيل الرسوميات ثلاثية الأبعاد على هذا المتصفح.<br>جرّب كروم محدّث.";
+    document.getElementById("fallback").style.display="block"; return false; } }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.VSMShadowMap; renderer.shadowMap.autoUpdate=true;
   renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
@@ -2013,6 +2022,7 @@ function initThree(){
 var realMode=true, realCache={};
 function loadModel(id){
   currentId=id;
+  if(!scene){ var t0=toolById(id); if(t0){ document.getElementById("nowName").textContent=t0.name; document.getElementById("nowEn").textContent=t0.en; renderInfo(t0); } return; }
   if(modelGroup){ scene.remove(modelGroup); }
   modelGroup=new THREE.Group(); current=modelGroup;
   if(realMode && REAL_MODELS[id]){ loadRealModel(id); return; }
