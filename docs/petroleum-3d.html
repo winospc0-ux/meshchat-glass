@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="color-scheme" content="dark light"/>
 <link rel="icon" href="data:,"/>
-<title>أدوات هندسة النفط — مجسّمات 3D تفاعلية</title>
+<title>أدوات هندسة النفط</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -254,7 +254,7 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 30px;colo
 
 <header class="hero">
   <div class="wrap hero-inner">
-    <span class="kicker"><i></i> مجسّمات 3D تفاعلية</span>
+    <span class="kicker"><i></i> مكتبة تفاعلية</span>
     <h1>أدوات <span class="hl">هندسة النفط</span></h1>
   </div>
 </header>
@@ -281,7 +281,7 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 30px;colo
 <div class="detail-overlay" id="detailOverlay" hidden role="dialog" aria-modal="true" aria-label="تفاصيل الأداة والمجسم ثلاثي الأبعاد">
   <div class="detail-sheet">
     <div class="detail-topbar">
-      <span class="dt">مجسّم 3D — حرّكه بإيدك، والشرح جوّاه</span>
+      <span class="dt">تفاصيل الأداة</span>
       <button class="btn-close" id="btnClose" type="button">✕ إغلاق</button>
     </div>
   <section class="stage-section" aria-label="عارض المجسمات ثلاثية الأبعاد">
@@ -289,7 +289,7 @@ footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 30px;colo
       <div class="viewer-card">
         <div class="viewer-head">
           <div class="now"><span id="nowName">منصّة الحفر</span><small id="nowEn">DRILLING RIG</small></div>
-          <span class="badge3d">مجسّم 3D تفاعلي</span>
+          
         </div>
         <div id="stage" role="application" aria-label="منطقة تدوير المجسم ثلاثي الأبعاد — اسحب للتدوير">
           <div id="fallback">تعذّر تحميل محرّك الـ 3D. تحقّق من اتصالك بالإنترنت وحدّث الصفحة.</div>
@@ -1542,8 +1542,8 @@ TOOLS.forEach(function(t,idx){
   var b=document.createElement("button");
   b.className="tool-card"; b.type="button"; b.dataset.id=t.id; b.dataset.cat=t.cat;
   b.setAttribute("aria-haspopup","dialog");
-  b.innerHTML='<div class="poster"><span class="p-num">'+String(idx+1).padStart(2,"0")+'</span><span class="p-badge">مجسّم 3D</span><span class="p-cat">'+CATS[t.cat]+'</span><div class="ic">'+ICONS[t.icon]+'</div><span class="p-play">▶</span></div>'+
-    '<div class="card-body"><h3>'+t.name+'</h3><div class="en2">'+t.en+'</div><span class="open">افتح المجسّم ←</span></div>';
+  b.innerHTML='<div class="poster"><span class="p-num">'+String(idx+1).padStart(2,"0")+'</span><span class="p-cat">'+CATS[t.cat]+'</span><div class="ic">'+ICONS[t.icon]+'</div><span class="p-play">▶</span></div>'+
+    '<div class="card-body"><h3>'+t.name+'</h3><div class="en2">'+t.en+'</div><span class="open">التفاصيل ←</span></div>';
   b.addEventListener("click",function(){ openDetail(t.id); });
   grid.appendChild(b);
 });
