@@ -2049,12 +2049,14 @@ function loadRealModel(id){
     if(currentId!==id) return;                       // user moved on
     var clone = realCache[gid].clone(true);
     modelGroup.add(clone);
+    scene.add(modelGroup);
     // auto-fit: normalize bounding box to radius ~2
     var bb=new THREE.Box3().setFromObject(modelGroup);
     var size=bb.getSize(new THREE.Vector3()), c=bb.getCenter(new THREE.Vector3());
     var mx=Math.max(size.x,size.y,size.z)||1;
     var sc=3.4/mx;
     modelGroup.scale.set(sc,sc,sc);
+    modelGroup.rotation.set(targetRX,targetRY,0);
     modelGroup.position.set(-c.x*sc, -c.y*sc + (bb.max.y-bb.min.y)*0 + 0.4, -c.z*sc);
     clone.traverse(function(o){ if(o.isMesh){ o.castShadow=true; if(o.material) o.material.envMapIntensity=1.2; } });
     var t=toolById(id);
